@@ -1,0 +1,458 @@
+<!--
+╔══════════════════════════════════════════════════════════════════╗
+║  producto.html — Página CRUD de Productos                       ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  Esta es la página MÁS COMPLETA del tutorial. Contiene:        ║
+║                                                                  ║
+║  1. BOTÓN "Nuevo Producto"  → abre formulario de creación      ║
+║  2. FILTRO DE LÍMITE        → controla cuántos registros ver   ║
+║  3. FORMULARIO              → para crear o editar productos    ║
+║  4. TABLA DE DATOS          → muestra los productos existentes ║
+║     con botones Editar y Eliminar en cada fila                 ║
+║                                                                  ║
+║  VARIABLES que recibe desde producto.py (render_template):     ║
+║  ─────────────────────────────────────────────────────────────  ║
+║  │ Variable          │ Tipo  │ Descripción                    │ ║
+║  ─────────────────────────────────────────────────────────────  ║
+║  │ productos          │ list  │ Lista de productos de la API  │ ║
+║  │ accion             │ str   │ "nuevo", "editar", o None     │ ║
+║  │ producto_editar    │ dict  │ Datos del producto a editar   │ ║
+║  │ limite             │ str   │ Límite actual (o None)        │ ║
+║  ─────────────────────────────────────────────────────────────  ║
+║                                                                  ║
+║  CONCEPTOS HTML QUE DEBES CONOCER:                              ║
+║  ─────────────────────────────────                              ║
+║  <form>     → agrupa campos de entrada. Al enviar (submit),    ║
+║               envía los datos al servidor.                      ║
+║  <input>    → campo donde el usuario escribe texto/números.    ║
+║  <button>   → botón que el usuario puede hacer clic.           ║
+║  <table>    → tabla con filas (<tr>) y celdas (<td>).          ║
+║  <a>        → link/enlace que navega a otra URL.               ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+-->
+
+{% extends "layout/base.html" %}
+
+{% block titulo %}Productos - CRUD Facturas{% endblock %}
+{% block encabezado %}Gestión de Productos{% endblock %}
+
+{% block contenido %}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECCIÓN 1: BOTÓN "NUEVO PRODUCTO" + FILTRO DE LÍMITE
+     ═══════════════════════════════════════════════════════════════
+     Esta fila contiene:
+     - A la izquierda: botón para crear un nuevo producto
+     - A la derecha: campo para filtrar la cantidad de resultados
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+    <!-- CLASES DE BOOTSTRAP (Flexbox):
+         d-flex               → activa flexbox (elementos en fila horizontal)
+         justify-content-between → separa elementos a los extremos
+                                   (uno a la izquierda, otro a la derecha)
+         align-items-center   → centra verticalmente los elementos
+         mt-3                 → margin-top: 3 (espacio arriba)
+         mb-3                 → margin-bottom: 3 (espacio abajo)
+    -->
+
+    <!-- Botón "Nuevo Producto" -->
+    <a href="{{ url_for('producto.index', accion='nuevo') }}"
+        class="btn btn-primary">
+        <!-- url_for('producto.index', accion='nuevo') genera:
+             /producto?accion=nuevo
+             El parámetro "accion=nuevo" le dice a la función index()
+             que debe mostrar el formulario de creación.
+
+             Clases Bootstrap:
+             btn         → estilo base de botón
+             btn-primary → color azul (el color "principal") -->
+        + Nuevo Producto
+    </a>
+
+    <!-- Formulario de filtro por límite -->
+    <form method="GET" action="{{ url_for('producto.index') }}" class="d-flex gap-2">
+        <!-- method="GET": los datos van en la URL (?limite=5)
+             Es GET porque solo estamos PIDIENDO datos (no modificando).
+
+             action="...": URL donde se envía el formulario.
+             Resultado: /producto?limite=5
+
+             d-flex gap-2: flexbox con espacio de 2 entre elementos. -->
+
+        <input type="number"
+               name="limite"
+               class="form-control form-control-sm"
+               placeholder="Límite"
+               value="{{ limite or '' }}"
+               min="1"
+               style="width: 120px;">
+        <!-- ATRIBUTOS DEL INPUT:
+             type="number"     → solo acepta números (aparecen flechitas ↑↓)
+             name="limite"     → nombre del campo. Al enviar, se agrega a la URL
+                                 como ?limite=VALOR
+             class="form-control form-control-sm"
+                                → estilo Bootstrap para inputs (borde redondeado,
+                                  foco azul). "sm" = tamaño pequeño.
+             placeholder="Límite" → texto gris que se muestra cuando está vacío
+             value="{{ limite or '' }}"
+                                → si hay un límite activo, lo muestra.
+                                  "or ''" evita mostrar "None" si no hay límite.
+             min="1"           → no permite números menores a 1
+             style="width:120px" → ancho fijo (para que no sea muy grande)
+        -->
+
+        <button type="submit" class="btn btn-outline-secondary btn-sm">
+            <!-- type="submit" → al hacer clic, ENVÍA el formulario.
+                 btn-outline-secondary → botón con borde gris (no relleno).
+                 btn-sm → tamaño pequeño. -->
+            Filtrar
+        </button>
+
+        <!-- Botón para quitar el filtro (mostrar todos) -->
+        <a href="{{ url_for('producto.index') }}" class="btn btn-outline-dark btn-sm">
+            <!-- Este es un <a> (link), no un <button>.
+                 Va a /producto sin parámetros (muestra todos). -->
+            Todos
+        </a>
+    </form>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECCIÓN 2: FORMULARIO DE CREAR / EDITAR
+     ═══════════════════════════════════════════════════════════════
+     Este formulario se muestra SOLO cuando:
+       - accion == "nuevo"  → formulario vacío para CREAR
+       - accion == "editar" → formulario lleno para ACTUALIZAR
+
+     Si accion es None (solo listando), NO se muestra.
+     Esto se controla con "if accion" ... "endif"
+     ═══════════════════════════════════════════════════════════════ -->
+{% if accion %}
+<!-- "if accion" = "si accion tiene valor (no es None ni vacío)" -->
+
+<div class="card shadow-sm mb-4">
+    <!-- card = tarjeta Bootstrap. mb-4 = margen abajo tamaño 4. -->
+
+    <!-- Encabezado de la tarjeta -->
+    <div class="card-header bg-primary text-white">
+        <!-- bg-primary  = fondo azul (color primario)
+             text-white  = texto blanco -->
+
+        {% if accion == "nuevo" %}
+            Crear Nuevo Producto
+        {% else %}
+            Editar Producto: {{ producto_editar.codigo }}
+        {% endif %}
+        <!-- Muestra título diferente según si estamos creando o editando.
+             {{ producto_editar.codigo }} muestra el código del producto
+             que estamos editando (ej: "PR001"). -->
+    </div>
+
+    <div class="card-body">
+        <!-- ─── FORMULARIO ─────────────────────────────────── -->
+        <form method="POST"
+              action="{% if accion == 'nuevo' %}
+                        {{ url_for('producto.crear') }}
+                      {% else %}
+                        {{ url_for('producto.actualizar') }}
+                      {% endif %}">
+            <!-- method="POST": envía datos en el cuerpo (no en la URL).
+                 Se usa POST para enviar datos que modifican el servidor.
+
+                 action: URL donde se envían los datos.
+                   - Si es nuevo  → /producto/crear
+                   - Si es editar → /producto/actualizar
+
+                 El servidor recibe los datos en request.form -->
+
+            <!-- ─── FILA 1: Código y Nombre ───────────────── -->
+            <div class="row mb-3">
+                <!-- "row" = fila de la grilla Bootstrap.
+                     La grilla divide la pantalla en 12 columnas.
+                     mb-3 = margen abajo. -->
+
+                <!-- Campo: Código -->
+                <div class="col-md-4">
+                    <!-- col-md-4 = ocupa 4 de 12 columnas en pantallas
+                         medianas (md) o más grandes. En móviles, ocupa 100%.
+                         4/12 = 33% del ancho. -->
+
+                    <label for="codigo" class="form-label">Código</label>
+                    <!-- <label> = etiqueta descriptiva para un campo.
+                         for="codigo" lo conecta con el input id="codigo".
+                         Al hacer clic en el label, se enfoca el input.
+                         form-label = estilo Bootstrap. -->
+
+                    <input type="text"
+                           class="form-control"
+                           id="codigo"
+                           name="codigo"
+                           value="{{ producto_editar.codigo if producto_editar else '' }}"
+                           {% if accion == 'editar' %}readonly{% endif %}
+                           required>
+                    <!-- ATRIBUTOS:
+                         type="text"    → acepta cualquier texto
+                         id="codigo"    → identificador único (para el label)
+                         name="codigo"  → nombre que Flask recibe en request.form
+                         value="..."    → valor pre-llenado:
+                           - Si editamos: muestra el código actual (ej: "PR001")
+                           - Si creamos:  vacío ('')
+                         readonly       → SOLO al editar. No se puede cambiar
+                                          el código porque es la clave primaria.
+                         required       → campo obligatorio. El navegador no
+                                          deja enviar el form si está vacío.
+                    -->
+                </div>
+
+                <!-- Campo: Nombre -->
+                <div class="col-md-8">
+                    <!-- col-md-8 = 8/12 = 67% del ancho. -->
+                    <label for="nombre" class="form-label">Nombre</label>
+                    <input type="text"
+                           class="form-control"
+                           id="nombre"
+                           name="nombre"
+                           value="{{ producto_editar.nombre if producto_editar else '' }}"
+                           required>
+                </div>
+            </div>
+
+            <!-- ─── FILA 2: Stock y Valor Unitario ─────────── -->
+            <div class="row mb-3">
+                <!-- Campo: Stock -->
+                <div class="col-md-4">
+                    <label for="stock" class="form-label">Stock</label>
+                    <input type="number"
+                           class="form-control"
+                           id="stock"
+                           name="stock"
+                           value="{{ producto_editar.stock if producto_editar else '' }}"
+                           min="0"
+                           required>
+                    <!-- type="number" → solo acepta números.
+                         min="0"      → no permite números negativos.
+                         El navegador muestra flechitas ↑↓ para ajustar. -->
+                </div>
+
+                <!-- Campo: Valor Unitario -->
+                <div class="col-md-4">
+                    <label for="valorunitario" class="form-label">Valor Unitario</label>
+                    <input type="number"
+                           class="form-control"
+                           id="valorunitario"
+                           name="valorunitario"
+                           value="{{ producto_editar.valorunitario if producto_editar else '' }}"
+                           step="0.01"
+                           min="0"
+                           required>
+                    <!-- step="0.01" → permite decimales de 2 cifras.
+                         Sin step, solo aceptaría números enteros.
+                         Ejemplo: 2500000.50 ✓    2500000 ✓ -->
+                </div>
+            </div>
+
+            <!-- ─── BOTONES: Guardar y Cancelar ───────────── -->
+            <div class="d-flex gap-2">
+                <!-- d-flex gap-2: botones en fila con espacio entre ellos. -->
+
+                <button type="submit" class="btn btn-success">
+                    <!-- type="submit" → al hacer clic, envía el formulario.
+                         btn-success   → color verde (éxito/confirmar). -->
+                    Guardar
+                </button>
+
+                <a href="{{ url_for('producto.index') }}" class="btn btn-secondary">
+                    <!-- Botón "Cancelar": es un link (<a>), no un button.
+                         Va a /producto sin parámetros (cierra el formulario).
+                         btn-secondary → color gris (acción secundaria). -->
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endif %}
+<!-- Fin del "if accion". Si accion es None, nada de arriba se muestra. -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECCIÓN 3: TABLA DE PRODUCTOS
+     ═══════════════════════════════════════════════════════════════
+     Muestra todos los productos en una tabla HTML.
+     Cada fila tiene botones para Editar y Eliminar.
+
+     ¿QUÉ ES UNA TABLA HTML?
+     ─────────────────────────
+     <table>  → contenedor de la tabla
+     <thead>  → encabezado (fila de títulos)
+     <tbody>  → cuerpo (filas de datos)
+     <tr>     → table row (una fila)
+     <th>     → table header (celda de título, en negrita)
+     <td>     → table data (celda de datos normal)
+
+     Ejemplo visual:
+     ┌──────────┬──────────┬───────┐
+     │ <th>     │ <th>     │ <th>  │  ← <thead><tr>
+     ├──────────┼──────────┼───────┤
+     │ <td>     │ <td>     │ <td>  │  ← <tbody><tr>
+     │ <td>     │ <td>     │ <td>  │  ← <tbody><tr>
+     └──────────┴──────────┴───────┘
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="card shadow-sm">
+    <div class="card-header">
+        <strong>Lista de Productos</strong>
+        <!-- Contador de registros -->
+        <span class="badge bg-secondary ms-2">{{ productos | length }}</span>
+        <!-- {{ productos | length }} = cantidad de productos en la lista.
+             "|" es un FILTRO de Jinja2. "length" cuenta los elementos.
+             Ejemplo: si hay 7 productos → muestra "7"
+
+             "badge bg-secondary" = insignia gris (Bootstrap).
+             ms-2 = margin-start 2 (espacio a la izquierda). -->
+    </div>
+
+    <div class="card-body p-0">
+        <!-- p-0 = padding: 0. La tabla llega hasta los bordes de la card. -->
+
+        <!-- ─── Verificar si hay productos ─────────────────── -->
+        {% if productos %}
+        <!-- Solo muestra la tabla si hay al menos 1 producto. -->
+
+        <div class="table-responsive">
+            <!-- table-responsive: en pantallas pequeñas, permite
+                 hacer scroll horizontal en la tabla (no se corta). -->
+
+            <table class="table table-striped table-hover mb-0">
+                <!-- CLASES DE LA TABLA:
+                     table          → estilo base Bootstrap (bordes, padding)
+                     table-striped  → filas alternadas con fondo gris/blanco
+                                      (más fácil de leer)
+                     table-hover    → al pasar el mouse, la fila se resalta
+                     mb-0           → sin margen abajo (pegado a la card)
+                -->
+
+                <!-- ─── Encabezado de la tabla ────────────── -->
+                <thead class="table-dark">
+                    <!-- table-dark = fondo oscuro para el encabezado. -->
+                    <tr>
+                        <!-- <tr> = una fila de la tabla. -->
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Stock</th>
+                        <th>Valor Unitario</th>
+                        <th style="width: 180px;">Acciones</th>
+                        <!-- width:180px fija el ancho de la columna
+                             de acciones (Editar/Eliminar). -->
+                    </tr>
+                </thead>
+
+                <!-- ─── Cuerpo de la tabla (datos) ────────── -->
+                <tbody>
+                    {% for producto in productos %}
+                    <!-- BUCLE FOR de Jinja2:
+                         Repite el <tr> para CADA producto de la lista.
+                         "producto" es una variable temporal que toma el
+                         valor de cada elemento en cada iteración.
+
+                         Si productos = [
+                             {"codigo": "PR001", "nombre": "Laptop", ...},
+                             {"codigo": "PR002", "nombre": "Mouse", ...}
+                         ]
+                         Entonces el for genera 2 filas <tr>.
+                    -->
+                    <tr>
+                        <td>{{ producto.codigo }}</td>
+                        <!-- {{ producto.codigo }} muestra el valor del
+                             campo "codigo" del producto actual.
+                             producto es un diccionario Python, y Jinja2
+                             permite acceder a sus claves con punto (.)
+                             en vez de corchetes (["codigo"]). -->
+
+                        <td>{{ producto.nombre }}</td>
+                        <td>{{ producto.stock }}</td>
+                        <td>{{ "{:,.2f}".format(producto.valorunitario) }}</td>
+                        <!-- "{:,.2f}".format(valor) formatea el número:
+                             :    → inicio del formato
+                             ,    → separador de miles (1,000,000)
+                             .2f  → 2 decimales fijos
+                             Ejemplo: 2500000.0 → "2,500,000.00"
+                        -->
+
+                        <!-- ─── Botones de acción ──────────── -->
+                        <td>
+                            <!-- Botón EDITAR (es un link) -->
+                            <a href="{{ url_for('producto.index', accion='editar', clave=producto.codigo) }}"
+                               class="btn btn-warning btn-sm me-1">
+                                <!-- Genera URL: /producto?accion=editar&clave=PR001
+                                     btn-warning → amarillo (precaución/editar)
+                                     btn-sm      → tamaño pequeño
+                                     me-1        → margen derecho 1 (separa del otro botón)
+                                -->
+                                Editar
+                            </a>
+
+                            <!-- Botón ELIMINAR (formulario con confirmación) -->
+                            <form method="POST"
+                                  action="{{ url_for('producto.eliminar') }}"
+                                  style="display: inline;"
+                                  onsubmit="return confirm('¿Seguro que desea eliminar el producto {{ producto.codigo }}?')">
+                                <!-- ¿Por qué un <form> y no un <a>?
+                                     Porque eliminar MODIFICA datos. Los links (<a>)
+                                     hacen GET, y GET no debe modificar datos.
+                                     Usamos un form con POST para ser correctos.
+
+                                     style="display:inline" → el form no hace
+                                     salto de línea (se queda al lado del botón Editar).
+
+                                     onsubmit="return confirm('...')"
+                                     → JAVASCRIPT: antes de enviar el formulario,
+                                       muestra un cuadro de diálogo:
+                                       "¿Seguro que desea eliminar...?"
+                                       [Aceptar] [Cancelar]
+                                       Si el usuario da Cancelar → return false
+                                       → el formulario NO se envía.
+                                       Si da Aceptar → return true → se envía.
+                                -->
+
+                                <!-- Campo oculto con el código del producto -->
+                                <input type="hidden" name="codigo" value="{{ producto.codigo }}">
+                                <!-- type="hidden" → campo invisible para el usuario.
+                                     Se envía junto con el formulario.
+                                     El servidor lo recibe en request.form.get("codigo")
+                                     Lo necesitamos para saber CUÁL producto eliminar. -->
+
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <!-- btn-danger → color rojo (peligro/eliminar) -->
+                                    Eliminar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    <!-- Fin del bucle. Se generó un <tr> por cada producto. -->
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        <!-- Si la lista de productos está VACÍA (0 productos): -->
+        <div class="text-center p-4 text-muted">
+            <!-- text-center → centra el texto horizontalmente.
+                 p-4         → padding 4 (espacio interno).
+                 text-muted  → color gris claro (texto discreto). -->
+            <p>No se encontraron productos.</p>
+            <p>
+                Verifica que la API esté corriendo en
+                <code>http://localhost:8000</code>
+            </p>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

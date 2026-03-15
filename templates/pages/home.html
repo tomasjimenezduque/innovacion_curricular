@@ -1,0 +1,119 @@
+<!--
+╔══════════════════════════════════════════════════════════════════╗
+║  home.html — Página de inicio (bienvenida)                      ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  HERENCIA DE PLANTILLAS                                         ║
+║  ──────────────────────                                         ║
+║  Esta página "hereda" de base.html usando:                      ║
+║    extends "layout/base.html"                                   ║
+║                                                                  ║
+║  Eso significa que TODO lo de base.html se incluye              ║
+║  automáticamente (menú, estilos, Bootstrap, etc).               ║
+║  Esta página solo define los bloques que quiere personalizar:   ║
+║    - block titulo      → título de la pestaña                  ║
+║    - block encabezado  → texto de la barra superior            ║
+║    - block contenido   → contenido principal                   ║
+║                                                                  ║
+║  Analogía: es como rellenar un formulario pre-impreso.          ║
+║  El formulario (base.html) ya tiene el diseño, tú solo          ║
+║  llenas los espacios en blanco (los blocks).                    ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+-->
+
+<!-- ─── Heredar de la plantilla base ──────────────────────────── -->
+{% extends "layout/base.html" %}
+<!-- A partir de aquí, esta página tiene TODO lo de base.html.
+     Solo necesitamos definir los bloques que queremos cambiar. -->
+
+<!-- ─── Bloque: Título de la pestaña del navegador ────────────── -->
+{% block titulo %}Inicio - CRUD Facturas{% endblock %}
+<!-- Reemplaza el block titulo de base.html.
+     La pestaña del navegador dirá: "Inicio - CRUD Facturas" -->
+
+<!-- ─── Bloque: Texto de la barra superior ────────────────────── -->
+{% block encabezado %}Inicio{% endblock %}
+<!-- Reemplaza el block encabezado de base.html.
+     La barra gris de arriba dirá: "Inicio" -->
+
+<!-- ─── Bloque: Contenido principal de la página ──────────────── -->
+{% block contenido %}
+<!-- Aquí va todo lo que es ÚNICO de esta página.
+     Todo lo demás (menú, estilos, Bootstrap) viene de base.html. -->
+
+<!-- Card de Bootstrap: una "tarjeta" con borde y sombra.
+     Es un contenedor visual que agrupa información relacionada. -->
+<div class="card shadow-sm mt-3">
+    <!-- shadow-sm = sombra pequeña (da efecto de elevación)
+         mt-3     = margin-top tamaño 3 (espacio arriba) -->
+
+    <div class="card-body">
+        <!-- card-body = zona interior de la tarjeta con padding -->
+
+        <h3>CRUD - Base de Datos Facturas</h3>
+        <!-- <h3> = encabezado de nivel 3 (tamaño mediano).
+             Los encabezados van del <h1> (más grande) al <h6> (más pequeño). -->
+
+        <hr>
+        <!-- <hr> = línea horizontal. Separa secciones visualmente. -->
+
+        <p class="lead">
+            Bienvenido al frontend Flask que consume la API REST de FastAPI.
+        </p>
+        <!-- <p> = párrafo de texto.
+             "lead" = clase Bootstrap que hace el texto un poco más grande
+             y con color más suave (estilo "introducción"). -->
+
+        <p>
+            Este proyecto es un <strong>tutorial paso a paso</strong> para aprender:
+        </p>
+        <!-- <strong> = texto en negrita. Indica importancia semántica. -->
+
+        <!-- Lista desordenada (bullets/viñetas) -->
+        <ul>
+            <!-- <ul> = unordered list (lista con viñetas).
+                 <li> = list item (cada elemento de la lista). -->
+            <li>Flask como framework web frontend</li>
+            <li>Consumo de API REST con la librería <code>requests</code></li>
+            <li>Plantillas HTML con Jinja2 (herencia y componentes)</li>
+            <li>Bootstrap 5 para estilos responsivos</li>
+            <li>Patrón de servicio genérico (<code>ApiService</code>)</li>
+            <li>Operaciones CRUD completas (Crear, Leer, Actualizar, Eliminar)</li>
+        </ul>
+        <!-- <code> = texto con formato de código (fuente monoespaciada).
+             Se usa para nombres de clases, funciones, comandos, etc. -->
+
+        <hr>
+
+        <h5>Tablas disponibles:</h5>
+        <ul>
+            <li>
+                <a href="{{ url_for('producto.index') }}">
+                    <strong>Producto</strong>
+                </a>
+                — Gestión completa de productos (código, nombre, stock, valor)
+            </li>
+            <!-- <a href="..."> = link/enlace. Al hacer clic, navega a esa URL.
+                 url_for('producto.index') genera "/producto". -->
+        </ul>
+
+        <!-- Alerta informativa de Bootstrap -->
+        <div class="alert alert-info mt-3">
+            <!-- alert-info = fondo azul claro (informativo) -->
+            <strong>API Backend:</strong>
+            La API FastAPI debe estar corriendo en
+            <code>http://localhost:8000</code>
+            para que este frontend funcione correctamente.
+            <br>
+            <!-- <br> = salto de línea (line break). -->
+            Ejecuta en la carpeta de la API:
+            <code>uvicorn main:app --reload</code>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+<!-- Fin del bloque "contenido". Todo lo que está entre
+     block contenido y endblock reemplaza
+     el bloque del mismo nombre en base.html. -->
