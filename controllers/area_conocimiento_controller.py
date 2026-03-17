@@ -1,0 +1,105 @@
+
+"""
+area_conocimiento_controller.py — Controller para la tabla area_conocimiento
+Generado automáticamente a partir del modelo.
+"""
+
+from fastapi import APIRouter, HTTPException, Query, Response
+from models.area_conocimiento import AreaConocimiento
+from servicios.fabrica_repositorios import crear_servicio_area_conocimiento
+
+router = APIRouter(prefix="/api/area_conocimiento", tags=["AreaConocimiento"])
+
+
+@router.get("/")
+async def listar(
+    esquema: str | None = Query(default=None),
+    limite: int | None = Query(default=None)
+):
+    try:
+        servicio = crear_servicio_area_conocimiento()
+        filas = await servicio.listar(esquema, limite)
+
+        if len(filas) == 0:
+            return Response(status_code=204)
+
+        return {
+            "tabla": "area_conocimiento",
+            "total": len(filas),
+            "datos": filas
+        }
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+
+@router.post("/")
+async def crear(
+    data: AreaConocimiento,
+    esquema: str | None = Query(default=None)
+):
+    try:
+        datos = data.model_dump()
+
+        servicio = crear_servicio_area_conocimiento()
+        creado = await servicio.crear(datos, esquema)
+
+        if creado:
+            return {
+                "estado": 200,
+                "mensaje": "Registro creado",
+                "datos": datos
+            }
+
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+
+@router.put("/{id}")
+async def actualizar(
+    id: int,
+    data: AreaConocimiento,
+    esquema: str | None = Query(default=None)
+):
+    try:
+        datos = data.model_dump()
+
+        servicio = crear_servicio_area_conocimiento()
+        filas = await servicio.actualizar(id, datos, esquema)
+
+        if filas > 0:
+            return {
+                "estado": 200,
+                "mensaje": "Registro actualizado",
+                "filasAfectadas": filas
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Registro no encontrado")
+
+    except HTTPException:
+        raise
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+
+@router.delete("/{id}")
+async def eliminar(
+    id: int,
+    esquema: str | None = Query(default=None)
+):
+    try:
+        servicio = crear_servicio_area_conocimiento()
+        filas = await servicio.eliminar(id, esquema)
+
+        if filas > 0:
+            return {
+                "estado": 200,
+                "mensaje": "Registro eliminado",
+                "filasEliminadas": filas
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Registro no encontrado")
+
+    except HTTPException:
+        raise
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
