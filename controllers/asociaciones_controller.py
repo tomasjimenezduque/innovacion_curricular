@@ -6,7 +6,7 @@ Generado automáticamente a partir del modelo.
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from models.asociaciones import Asociaciones
-from servicios.fabrica_repositorios import crear_servicio_asociaciones
+from services.fabrica_repositorios import crear_servicio_asociaciones
 
 router = APIRouter(prefix="/api/asociaciones", tags=["Asociaciones"])
 

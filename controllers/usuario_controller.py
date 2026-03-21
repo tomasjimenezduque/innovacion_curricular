@@ -6,7 +6,7 @@ Generado automáticamente a partir del modelo.
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from models.usuario import Usuario
-from servicios.fabrica_repositorios import crear_servicio_usuario
+from services.fabrica_repositorios import crear_servicio_usuario
 
 router = APIRouter(prefix="/api/usuario", tags=["Usuario"])
 

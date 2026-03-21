@@ -6,7 +6,7 @@ Generado automáticamente a partir del modelo.
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from models.rol import Rol
-from servicios.fabrica_repositorios import crear_servicio_rol
+from services.fabrica_repositorios import crear_servicio_rol
 
 router = APIRouter(prefix="/api/rol", tags=["Rol"])
 

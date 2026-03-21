@@ -6,7 +6,7 @@ Generado automáticamente a partir del modelo.
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from models.aliado import Aliado
-from servicios.fabrica_repositorios import crear_servicio_aliado
+from services.fabrica_repositorios import crear_servicio_aliado
 
 router = APIRouter(prefix="/api/aliado", tags=["Aliado"])
 

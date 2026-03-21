@@ -6,7 +6,7 @@ Generado automáticamente a partir del modelo.
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from models.registro_calificado import RegistroCalificado
-from servicios.fabrica_repositorios import crear_servicio_registro_calificado
+from services.fabrica_repositorios import crear_servicio_registro_calificado
 
 router = APIRouter(prefix="/api/registro_calificado", tags=["RegistroCalificado"])
 

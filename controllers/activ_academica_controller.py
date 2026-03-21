@@ -6,7 +6,7 @@ Generado automáticamente a partir del modelo.
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from models.activ_academica import ActivAcademica
-from servicios.fabrica_repositorios import crear_servicio_activ_academica
+from services.fabrica_repositorios import crear_servicio_activ_academica
 
 router = APIRouter(prefix="/api/activ_academica", tags=["ActivAcademica"])
 

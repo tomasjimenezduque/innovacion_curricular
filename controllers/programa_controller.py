@@ -6,7 +6,7 @@ Generado automáticamente a partir del modelo.
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from models.programa import Programa
-from servicios.fabrica_repositorios import crear_servicio_programa
+from services.fabrica_repositorios import crear_servicio_programa
 
 router = APIRouter(prefix="/api/programa", tags=["Programa"])
 

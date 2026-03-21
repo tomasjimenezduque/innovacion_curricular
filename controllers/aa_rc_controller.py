@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query, Response, status
 from models.aa_rc import AaRc
-from servicios.fabrica_repositorios import crear_servicio_aa_rc
+from services.fabrica_repositorios import crear_servicio_aa_rc
 
 router = APIRouter(prefix="/api/aa_rc", tags=["AaRc"])
 

@@ -6,7 +6,7 @@ Generado automáticamente a partir del modelo.
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from models.practica_estrategia import PracticaEstrategia
-from servicios.fabrica_repositorios import crear_servicio_practica_estrategia
+from services.fabrica_repositorios import crear_servicio_practica_estrategia
 
 router = APIRouter(prefix="/api/practica_estrategia", tags=["PracticaEstrategia"])
 

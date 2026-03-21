@@ -6,7 +6,7 @@ Generado automáticamente a partir del modelo.
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from models.aspecto_normativo import AspectoNormativo
-from servicios.fabrica_repositorios import crear_servicio_aspecto_normativo
+from services.fabrica_repositorios import crear_servicio_aspecto_normativo
 
 router = APIRouter(prefix="/api/aspecto_normativo", tags=["AspectoNormativo"])
 

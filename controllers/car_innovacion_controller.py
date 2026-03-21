@@ -6,7 +6,7 @@ Generado automáticamente a partir del modelo.
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from models.car_innovacion import CarInnovacion
-from servicios.fabrica_repositorios import crear_servicio_car_innovacion
+from services.fabrica_repositorios import crear_servicio_car_innovacion
 
 router = APIRouter(prefix="/api/car_innovacion", tags=["CarInnovacion"])
 

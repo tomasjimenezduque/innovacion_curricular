@@ -6,7 +6,7 @@ Generado automáticamente a partir del modelo.
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from models.alianza import Alianza
-from servicios.fabrica_repositorios import crear_servicio_alianza
+from services.fabrica_repositorios import crear_servicio_alianza
 
 router = APIRouter(prefix="/api/alianza", tags=["Alianza"])
 

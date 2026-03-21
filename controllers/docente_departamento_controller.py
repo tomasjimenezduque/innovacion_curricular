@@ -6,7 +6,7 @@ Generado automáticamente a partir del modelo.
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from models.docente_departamento import DocenteDepartamento
-from servicios.fabrica_repositorios import crear_servicio_docente_departamento
+from services.fabrica_repositorios import crear_servicio_docente_departamento
 
 router = APIRouter(prefix="/api/docente_departamento", tags=["DocenteDepartamento"])
 

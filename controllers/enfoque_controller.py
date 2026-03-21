@@ -6,7 +6,7 @@ Generado automáticamente a partir del modelo.
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from models.enfoque import Enfoque
-from servicios.fabrica_repositorios import crear_servicio_enfoque
+from services.fabrica_repositorios import crear_servicio_enfoque
 
 router = APIRouter(prefix="/api/enfoque", tags=["Enfoque"])
 

@@ -6,7 +6,7 @@ Generado automáticamente a partir del modelo.
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from models.pasantia import Pasantia
-from servicios.fabrica_repositorios import crear_servicio_pasantia
+from services.fabrica_repositorios import crear_servicio_pasantia
 
 router = APIRouter(prefix="/api/pasantia", tags=["Pasantia"])
 

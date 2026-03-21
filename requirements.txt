@@ -103,3 +103,7 @@ sqlalchemy[asyncio]>=2.0.0
 # internamente. Se instala como dependencia técnica.
 # ─────────────────────────────────────────────────────────────
 greenlet>=3.0.0
+
+requests 
+
+psycopg2
