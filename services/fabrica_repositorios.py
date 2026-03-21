@@ -1,5 +1,5 @@
-# servicios/fabrica_repositorios.py
-from connection import SessionLocal  # Importa tu generador de sesiones
+# services/fabrica_repositorios.py
+from database.connection import SessionLocal # Importa tu generador de sesiones
 from repositories.aa_rc_repository import AaRcRepository
 
 def crear_servicio_aa_rc():
