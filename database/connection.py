@@ -1,23 +1,30 @@
-from sqlmodel import create_engine, Session, text
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+from sqlmodel import text
 
-# USA ESTA URL SIMPLE (Asegúrate de que el nombre sea exacto al de pgAdmin)
-# Si tu BD en pgAdmin se llama 'innovacion_curricular', ponlo así:
-DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/innovacion_curricular"
+# 1. IMPORTANTE: Cambiamos el driver a 'postgresql+asyncpg'
+DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/innovacion_curricular"
 
-engine = create_engine(DATABASE_URL)
+# 2. Creamos el motor asíncrono
+engine = create_async_engine(DATABASE_URL, echo=True)
 
-def test_connection():
+# 3. Configuramos la fábrica de sesiones asíncronas
+SessionLocal = sessionmaker(
+    engine, 
+    class_=AsyncSession, 
+    expire_on_commit=False
+)
+
+async def test_connection():
     try:
-        with Session(engine) as session:
-            session.execute(text("SELECT 1"))
-            # Usamos un mensaje sin tildes ni emojis para evitar el WinError 6
-            print("CONEXION EXITOSA")
+        # Usamos 'async with' para la sesión
+        async with SessionLocal() as session:
+            await session.execute(text("SELECT 1"))
+            print("CONEXION ASINCRONA EXITOSA")
     except Exception as e:
-        # Imprimimos el error de forma simple
-        print("Error detectado")
+        print("Error detectado en la conexion")
         print(str(e))
 
 if __name__ == "__main__":
-    test_connection()
-
-SessionLocal = Session
+    import asyncio
+    asyncio.run(test_connection())
