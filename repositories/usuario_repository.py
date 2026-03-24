@@ -1,11 +1,12 @@
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.ext.asyncio import AsyncSession # Cambio fundamental
+from sqlalchemy.orm import joinedload
 from sqlalchemy import select, update
 from .abstracciones.i_repository import IRepository
 from models.usuario import Usuario
 
 class UsuarioRepository(IRepository):
 
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession): # Inyectamos la sesión asíncrona
         self.db = db
 
     async def obtener_todos(self, esquema: str = None, limite: int = None):
@@ -14,7 +15,8 @@ class UsuarioRepository(IRepository):
         if limite:
             stmt = stmt.limit(limite)
         
-        result = self.db.execute(stmt)
+        # CORRECCIÓN: await para ejecución asíncrona
+        result = await self.db.execute(stmt)
         return result.scalars().all()
 
     async def obtener_por_id(self, valor_id: int, esquema: str = None):
@@ -22,23 +24,25 @@ class UsuarioRepository(IRepository):
         stmt = select(Usuario).where(Usuario.id == valor_id).options(
             joinedload(Usuario.rol)
         )
-        result = self.db.execute(stmt)
+        # CORRECCIÓN: await para ejecución
+        result = await self.db.execute(stmt)
         return result.scalars().first()
 
     async def guardar(self, entidad: Usuario, esquema: str = None):
         try:
             self.db.add(entidad)
-            self.db.commit()
-            self.db.refresh(entidad)
+            # CORRECCIÓN: await en operaciones de escritura
+            await self.db.commit()
+            await self.db.refresh(entidad)
             return True, "Usuario guardado correctamente"
         except Exception as e:
-            self.db.rollback()
+            # CORRECCIÓN: await en rollback
+            await self.db.rollback()
             return False, f"Error: {str(e)}"
 
     async def actualizar(self, valor_id: int, datos: dict, esquema: str = None):
         """
         Actualiza los datos del usuario (nombre, correo, estado).
-        Nota: Si se actualiza el password, debe venir ya hasheado desde el service.
         """
         try:
             stmt = (
@@ -46,32 +50,34 @@ class UsuarioRepository(IRepository):
                 .where(Usuario.id == valor_id)
                 .values(**datos)
             )
-            result = self.db.execute(stmt)
-            self.db.commit()
+            # CORRECCIÓN: await en execute y commit
+            result = await self.db.execute(stmt)
+            await self.db.commit()
             
             if result.rowcount > 0:
                 return True, "Usuario actualizado con éxito"
             return False, "No se encontró el usuario para actualizar"
         except Exception as e:
-            self.db.rollback()
+            await self.db.rollback()
             return False, f"Error al actualizar: {str(e)}"
 
     async def eliminar(self, entidad: Usuario, esquema: str = None):
         try:
-            self.db.delete(entidad)
-            self.db.commit()
+            # CORRECCIÓN: await en delete y commit
+            await self.db.delete(entidad)
+            await self.db.commit()
             return True, "Usuario eliminado correctamente"
         except Exception as e:
-            self.db.rollback()
+            await self.db.rollback()
             return False, f"Error: {str(e)}"
 
     async def obtener_por_username(self, username: str):
         """
         Método clave para el flujo de autenticación.
-        Cargamos el rol para poder validar permisos inmediatamente.
         """
         stmt = select(Usuario).where(Usuario.username == username).options(
             joinedload(Usuario.rol)
         )
-        result = self.db.execute(stmt)
+        # CORRECCIÓN: await para ejecución
+        result = await self.db.execute(stmt)
         return result.scalars().first()

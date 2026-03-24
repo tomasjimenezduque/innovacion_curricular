@@ -1,11 +1,11 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession # Cambio a AsyncSession
 from sqlalchemy import select, update
 from .abstracciones.i_repository import IRepository
 from models.facultad import Facultad
 
 class FacultadRepository(IRepository):
 
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession): # Inyectamos AsyncSession
         self.db = db
 
     async def obtener_todos(self, esquema: str = None, limite: int = None):
@@ -14,29 +14,32 @@ class FacultadRepository(IRepository):
         if limite:
             stmt = stmt.limit(limite)
         
-        result = self.db.execute(stmt)
+        # CORRECCIÓN: await para ejecutar
+        result = await self.db.execute(stmt)
         return result.scalars().all()
 
     async def obtener_por_id(self, valor_id: int, esquema: str = None):
         """Obtiene una facultad específica por su ID."""
         stmt = select(Facultad).where(Facultad.id == valor_id)
-        result = self.db.execute(stmt)
+        # CORRECCIÓN: await para ejecutar
+        result = await self.db.execute(stmt)
         return result.scalars().first()
 
     async def guardar(self, entidad: Facultad, esquema: str = None):
         try:
             self.db.add(entidad)
-            self.db.commit()
-            self.db.refresh(entidad)
+            # CORRECCIÓN: await en commit y refresh
+            await self.db.commit()
+            await self.db.refresh(entidad)
             return True, "Facultad guardada correctamente"
         except Exception as e:
-            self.db.rollback()
+            # CORRECCIÓN: await en rollback
+            await self.db.rollback()
             return False, f"Error: {str(e)}"
 
     async def actualizar(self, valor_id: int, datos: dict, esquema: str = None):
         """
-        Actualiza los datos de una facultad (nombre, decano, etc.).
-        'datos' es un diccionario con los campos a modificar.
+        Actualiza los datos de una facultad.
         """
         try:
             stmt = (
@@ -45,21 +48,23 @@ class FacultadRepository(IRepository):
                 .values(**datos)
             )
             
-            result = self.db.execute(stmt)
-            self.db.commit()
+            # CORRECCIÓN: await en execute y commit
+            result = await self.db.execute(stmt)
+            await self.db.commit()
             
             if result.rowcount > 0:
                 return True, "Facultad actualizada con éxito"
             return False, "No se encontró la facultad para actualizar"
         except Exception as e:
-            self.db.rollback()
+            await self.db.rollback()
             return False, f"Error al actualizar facultad: {str(e)}"
 
     async def eliminar(self, entidad: Facultad, esquema: str = None):
         try:
-            self.db.delete(entidad)
-            self.db.commit()
+            # CORRECCIÓN: await en delete y commit
+            await self.db.delete(entidad)
+            await self.db.commit()
             return True, "Registro eliminado correctamente"
         except Exception as e:
-            self.db.rollback()
+            await self.db.rollback()
             return False, f"Error: {str(e)}"

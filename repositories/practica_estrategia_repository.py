@@ -1,11 +1,11 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession # Cambio a AsyncSession
 from sqlalchemy import select, update
 from .abstracciones.i_repository import IRepository
 from models.practica_estrategia import PracticaEstrategia
 
 class PracticaEstrategiaRepository(IRepository):
 
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession): # Ahora inyectamos la sesión asíncrona
         self.db = db
 
     async def obtener_todos(self, esquema: str = None, limite: int = None):
@@ -14,29 +14,32 @@ class PracticaEstrategiaRepository(IRepository):
         if limite:
             stmt = stmt.limit(limite)
         
-        result = self.db.execute(stmt)
+        # CORRECCIÓN: await para esperar la respuesta de la DB
+        result = await self.db.execute(stmt)
         return result.scalars().all()
 
     async def obtener_por_id(self, valor_id: int, esquema: str = None):
         """Obtiene una práctica o estrategia específica por su identificador único."""
         stmt = select(PracticaEstrategia).where(PracticaEstrategia.id == valor_id)
-        result = self.db.execute(stmt)
+        # CORRECCIÓN: await para ejecutar la consulta
+        result = await self.db.execute(stmt)
         return result.scalars().first()
 
     async def guardar(self, entidad: PracticaEstrategia, esquema: str = None):
         try:
             self.db.add(entidad)
-            self.db.commit()
-            self.db.refresh(entidad)
+            # CORRECCIÓN: await en operaciones de escritura (I/O)
+            await self.db.commit()
+            await self.db.refresh(entidad)
             return True, "Práctica/Estrategia guardada correctamente"
         except Exception as e:
-            self.db.rollback()
+            # CORRECCIÓN: el rollback también debe ser esperado
+            await self.db.rollback()
             return False, f"Error: {str(e)}"
 
     async def actualizar(self, valor_id: int, datos: dict, esquema: str = None):
         """
         Actualiza los datos de una práctica o estrategia pedagógica.
-        'datos' es un diccionario con los campos a modificar (ej. descripción, tipo).
         """
         try:
             stmt = (
@@ -45,21 +48,23 @@ class PracticaEstrategiaRepository(IRepository):
                 .values(**datos)
             )
             
-            result = self.db.execute(stmt)
-            self.db.commit()
+            # CORRECCIÓN: await en ejecución y confirmación
+            result = await self.db.execute(stmt)
+            await self.db.commit()
             
             if result.rowcount > 0:
                 return True, "Práctica/Estrategia actualizada correctamente"
             return False, "No se encontró el registro para actualizar"
         except Exception as e:
-            self.db.rollback()
+            await self.db.rollback()
             return False, f"Error al actualizar la práctica: {str(e)}"
 
     async def eliminar(self, entidad: PracticaEstrategia, esquema: str = None):
         try:
-            self.db.delete(entidad)
-            self.db.commit()
+            # CORRECCIÓN: await en delete y commit
+            await self.db.delete(entidad)
+            await self.db.commit()
             return True, "Registro eliminado correctamente"
         except Exception as e:
-            self.db.rollback()
+            await self.db.rollback()
             return False, f"Error: {str(e)}"

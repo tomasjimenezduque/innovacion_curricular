@@ -23,8 +23,8 @@ class ApiService(IApiService): # <--- AQUÍ HEREDAMOS
     def listar(self, tabla, esquema=None, limite=None):
         url = f"{self.base_url}/{tabla}/"
         params = {}
-        if limite:
-            params["limite"] = limite
+        if limite: params["limite"] = limite
+        if esquema: params["esquema"] = esquema
 
         try:
             respuesta = requests.get(url, params=params)

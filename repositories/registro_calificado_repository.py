@@ -1,11 +1,12 @@
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy import select, update
 from .abstracciones.i_repository import IRepository
 from models.registro_calificado import RegistroCalificado
 
 class RegistroCalificadoRepository(IRepository):
 
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession): # Inyectamos la sesión asíncrona
         self.db = db
 
     async def obtener_todos(self, esquema: str = None, limite: int = None):
@@ -14,7 +15,8 @@ class RegistroCalificadoRepository(IRepository):
         if limite:
             stmt = stmt.limit(limite)
         
-        result = self.db.execute(stmt)
+        # CORRECCIÓN: await para ejecución asíncrona
+        result = await self.db.execute(stmt)
         return result.scalars().all()
 
     async def obtener_por_id(self, valor_id: int, esquema: str = None):
@@ -23,27 +25,31 @@ class RegistroCalificadoRepository(IRepository):
             select(RegistroCalificado)
             .where(RegistroCalificado.codigo == valor_id)
             .options(
-                joinedload(RegistroCalificado.enfoque),
-                joinedload(RegistroCalificado.aa_rc)
+                # joinedload es ideal para relaciones 1:1 (como el programa si fuera el caso)
+                # selectinload es mejor para colecciones (listas) en modo asíncrono
+                selectinload(RegistroCalificado.enfoque),
+                selectinload(RegistroCalificado.aa_rc)
             )
         )
-        result = self.db.execute(stmt)
+        # CORRECCIÓN: await para ejecución
+        result = await self.db.execute(stmt)
         return result.scalars().first()
 
     async def guardar(self, entidad: RegistroCalificado, esquema: str = None):
         try:
             self.db.add(entidad)
-            self.db.commit()
-            self.db.refresh(entidad)
+            # CORRECCIÓN: await en operaciones de escritura
+            await self.db.commit()
+            await self.db.refresh(entidad)
             return True, "Registro Calificado guardado correctamente"
         except Exception as e:
-            self.db.rollback()
+            # CORRECCIÓN: await en rollback
+            await self.db.rollback()
             return False, f"Error: {str(e)}"
 
     async def actualizar(self, codigo: int, datos: dict, esquema: str = None):
         """
         Actualización directa por código usando el estándar de SQLAlchemy 2.0.
-        Retorna un booleano y un mensaje para consistencia con el resto del proyecto.
         """
         try:
             stmt = (
@@ -51,21 +57,23 @@ class RegistroCalificadoRepository(IRepository):
                 .where(RegistroCalificado.codigo == codigo)
                 .values(**datos)
             )
-            result = self.db.execute(stmt)
-            self.db.commit()
+            # CORRECCIÓN: await en execute y commit
+            result = await self.db.execute(stmt)
+            await self.db.commit()
             
             if result.rowcount > 0:
                 return True, "Registro Calificado actualizado correctamente"
             return False, "No se encontró el registro para actualizar"
         except Exception as e:
-            self.db.rollback()
+            await self.db.rollback()
             return False, f"Error al actualizar: {str(e)}"
 
     async def eliminar(self, entidad: RegistroCalificado, esquema: str = None):
         try:
-            self.db.delete(entidad)
-            self.db.commit()
+            # CORRECCIÓN: await en delete y commit
+            await self.db.delete(entidad)
+            await self.db.commit()
             return True, "Registro Calificado eliminado"
         except Exception as e:
-            self.db.rollback()
+            await self.db.rollback()
             return False, f"Error: {str(e)}"
