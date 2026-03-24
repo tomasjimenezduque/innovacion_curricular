@@ -1,15 +1,7 @@
-
-"""
-aspecto_normativo_controller.py — Controller para la tabla aspecto_normativo
-Generado automáticamente a partir del modelo.
-"""
-
-from fastapi import APIRouter, HTTPException, Query, Response
-from models.aspecto_normativo import AspectoNormativo
+from fastapi import APIRouter, HTTPException, Query, Response, status
 from services.fabrica_repositorios import crear_servicio_aspecto_normativo
 
 router = APIRouter(prefix="/api/aspecto_normativo", tags=["AspectoNormativo"])
-
 
 @router.get("/")
 async def listar(
@@ -18,10 +10,11 @@ async def listar(
 ):
     try:
         servicio = crear_servicio_aspecto_normativo()
-        filas = await servicio.listar(esquema, limite)
+        # Ajuste: El repositorio usa 'obtener_todos'
+        filas = await servicio.obtener_todos(esquema, limite)
 
-        if len(filas) == 0:
-            return Response(status_code=204)
+        if not filas:
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
 
         return {
             "tabla": "aspecto_normativo",
@@ -31,55 +24,48 @@ async def listar(
     except Exception as ex:
         raise HTTPException(status_code=500, detail=str(ex))
 
-
-@router.post("/")
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def crear(
-    data: AspectoNormativo,
+    data: dict, # Usamos dict para flexibilidad y desacoplamiento del modelo
     esquema: str | None = Query(default=None)
 ):
     try:
-        datos = data.model_dump()
-
         servicio = crear_servicio_aspecto_normativo()
-        creado = await servicio.crear(datos, esquema)
+        # Ajuste: 'guardar' devuelve la tupla (bool, mensaje)
+        exito, mensaje = await servicio.guardar(data, esquema)
 
-        if creado:
+        if exito:
             return {
-                "estado": 200,
-                "mensaje": "Registro creado",
-                "datos": datos
+                "mensaje": mensaje,
+                "datos": data
             }
-
+        
+        raise HTTPException(status_code=400, detail=mensaje)
     except Exception as ex:
         raise HTTPException(status_code=500, detail=str(ex))
-
 
 @router.put("/{id}")
 async def actualizar(
     id: int,
-    data: AspectoNormativo,
+    data: dict,
     esquema: str | None = Query(default=None)
 ):
     try:
-        datos = data.model_dump()
-
         servicio = crear_servicio_aspecto_normativo()
-        filas = await servicio.actualizar(id, datos, esquema)
+        # Ajuste: 'actualizar' devuelve (bool, mensaje)
+        exito, mensaje = await servicio.actualizar(id, data, esquema)
 
-        if filas > 0:
+        if exito:
             return {
-                "estado": 200,
-                "mensaje": "Registro actualizado",
-                "filasAfectadas": filas
+                "mensaje": mensaje,
+                "datos_actualizados": data
             }
-        else:
-            raise HTTPException(status_code=404, detail="Registro no encontrado")
-
+        
+        raise HTTPException(status_code=404, detail=mensaje)
     except HTTPException:
         raise
     except Exception as ex:
         raise HTTPException(status_code=500, detail=str(ex))
-
 
 @router.delete("/{id}")
 async def eliminar(
@@ -88,17 +74,18 @@ async def eliminar(
 ):
     try:
         servicio = crear_servicio_aspecto_normativo()
-        filas = await servicio.eliminar(id, esquema)
-
-        if filas > 0:
-            return {
-                "estado": 200,
-                "mensaje": "Registro eliminado",
-                "filasEliminadas": filas
-            }
-        else:
+        
+        # Primero buscamos la entidad completa para pasarla al repositorio
+        entidad = await servicio.obtener_por_id(id, esquema)
+        if not entidad:
             raise HTTPException(status_code=404, detail="Registro no encontrado")
 
+        exito, mensaje = await servicio.eliminar(entidad, esquema)
+
+        if exito:
+            return {"mensaje": mensaje}
+            
+        raise HTTPException(status_code=400, detail=mensaje)
     except HTTPException:
         raise
     except Exception as ex:

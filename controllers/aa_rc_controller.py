@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query, Response, status
 from services.fabrica_repositorios import crear_servicio_aa_rc
 
-# Eliminamos la importación de AaRc aquí para evitar que FastAPI intente validarlo como Pydantic
 router = APIRouter(prefix="/api/aa_rc", tags=["AaRc"])
 
 @router.get("/", response_model=None)
@@ -11,7 +10,8 @@ async def listar(
 ):
     try:
         servicio = crear_servicio_aa_rc()
-        filas = await servicio.listar(esquema, limite)
+        # Cambio: método coincidente con el repositorio
+        filas = await servicio.obtener_todos(esquema, limite)
 
         if not filas:
             return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -26,20 +26,21 @@ async def listar(
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=None)
 async def crear(
-    data: dict, # CAMBIO: Recibimos un dict genérico para evitar el error de Pydantic
+    data: dict, 
     esquema: str | None = Query(default=None)
 ):
     try:
         servicio = crear_servicio_aa_rc()
-        # Pasamos el dict directamente al servicio
-        creado = await servicio.crear(data, esquema)
+        # Importante: Aquí 'data' debería convertirse en la entidad AaRc 
+        # antes de enviarse al repo, o el repo debe manejar el dict.
+        exito, mensaje = await servicio.guardar(data, esquema)
 
-        if creado:
+        if exito:
             return {
-                "mensaje": "Registro creado con éxito",
+                "mensaje": mensaje,
                 "datos": data
             }
-        raise HTTPException(status_code=400, detail="No se pudo crear el registro")
+        raise HTTPException(status_code=400, detail=mensaje)
     except Exception as ex:
         raise HTTPException(status_code=500, detail=str(ex))
 
@@ -47,20 +48,21 @@ async def crear(
 async def actualizar(
     id_curso: int,
     cod_reg: int,
-    data: dict, # CAMBIO: Recibimos un dict genérico
+    data: dict,
     esquema: str | None = Query(default=None)
 ):
     try:
         servicio = crear_servicio_aa_rc()
-        # El servicio recibe ambos IDs de la llave compuesta y el diccionario de datos
-        filas = await servicio.actualizar(id_curso, cod_reg, data, esquema)
+        # NOTA: En llaves compuestas, el método actualizar debe recibir ambos IDs
+        # Asegúrate de que AaRcRepository.actualizar soporte esta firma.
+        exito, mensaje = await servicio.actualizar(id_curso, cod_reg, data, esquema)
 
-        if filas > 0:
+        if exito:
             return {
-                "mensaje": "Registro actualizado",
-                "filasAfectadas": filas
+                "mensaje": mensaje,
+                "datos_actualizados": data
             }
-        raise HTTPException(status_code=404, detail="Registro no encontrado")
+        raise HTTPException(status_code=404, detail=mensaje)
     except HTTPException:
         raise
     except Exception as ex:
@@ -74,14 +76,18 @@ async def eliminar(
 ):
     try:
         servicio = crear_servicio_aa_rc()
-        filas = await servicio.eliminar(id_curso, cod_reg, esquema)
+        # Primero obtenemos la entidad para poder pasarla al método eliminar del repo
+        entidad = await servicio.obtener_por_id_compuesto(id_curso, cod_reg, esquema)
+        
+        if not entidad:
+            raise HTTPException(status_code=404, detail="Registro no encontrado")
 
-        if filas > 0:
-            return {
-                "mensaje": "Registro eliminado",
-                "filasEliminadas": filas
-            }
-        raise HTTPException(status_code=404, detail="Registro no encontrado")
+        exito, mensaje = await servicio.eliminar(entidad, esquema)
+
+        if exito:
+            return {"mensaje": mensaje}
+            
+        raise HTTPException(status_code=400, detail=mensaje)
     except HTTPException:
         raise
     except Exception as ex:
