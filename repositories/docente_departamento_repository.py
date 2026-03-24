@@ -1,33 +1,28 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
 from .abstracciones.i_repository import IRepository
-from models.aa_rc import AaRc 
+from models.docente_departamento import DocenteDepartamento
 
-class AaRcRepository(IRepository):
+class DocenteDepartamentoRepository(IRepository):
 
     def __init__(self, db: Session):
         self.db = db
 
     async def obtener_todos(self, esquema: str = None, limite: int = None):
-        stmt = select(AaRc)
+        """Consulta directa a la tabla sin cargar relaciones por defecto."""
+        stmt = select(DocenteDepartamento)
         if limite:
             stmt = stmt.limit(limite)
+        
         result = self.db.execute(stmt)
         return result.scalars().all()
 
-    async def obtener_por_id(self, valor_id, esquema: str = None):
-        # Al ser llave compuesta, este método genérico retorna None
-        return None 
-
-    async def obtener_por_llave_compuesta(self, id_curso: int, cod_reg: int, esquema: str = None):
-        stmt = select(AaRc).where(
-            AaRc.id_curso == id_curso,
-            AaRc.codigo_registro == cod_reg
-        )
+    async def obtener_por_id(self, valor_id: int, esquema: str = None):
+        stmt = select(DocenteDepartamento).where(DocenteDepartamento.id == valor_id)
         result = self.db.execute(stmt)
         return result.scalars().first()
 
-    async def guardar(self, entidad: AaRc, esquema: str = None):
+    async def guardar(self, entidad: DocenteDepartamento, esquema: str = None):
         try:
             self.db.add(entidad)
             self.db.commit()
@@ -37,28 +32,29 @@ class AaRcRepository(IRepository):
             self.db.rollback()
             return False, f"Error: {str(e)}"
 
-    async def actualizar(self, id_curso: int, cod_reg: int, datos: dict, esquema: str = None):
+    async def actualizar(self, valor_id: int, datos: dict, esquema: str = None):
         """
-        Actualiza un registro usando su llave compuesta.
-        'datos' debe ser un diccionario con los campos a modificar.
+        Actualiza la vinculación de un docente con su departamento.
+        'datos' es el diccionario con los campos a modificar (ej. dedicación, cargo).
         """
         try:
-            stmt = update(AaRc).where(
-                AaRc.id_curso == id_curso,
-                AaRc.codigo_registro == cod_reg
-            ).values(**datos)
+            stmt = (
+                update(DocenteDepartamento)
+                .where(DocenteDepartamento.id == valor_id)
+                .values(**datos)
+            )
             
             result = self.db.execute(stmt)
             self.db.commit()
             
             if result.rowcount > 0:
-                return True, "Registro actualizado correctamente"
+                return True, "Vinculación docente-departamento actualizada con éxito"
             return False, "No se encontró el registro para actualizar"
         except Exception as e:
             self.db.rollback()
             return False, f"Error al actualizar: {str(e)}"
 
-    async def eliminar(self, entidad: AaRc, esquema: str = None):
+    async def eliminar(self, entidad: DocenteDepartamento, esquema: str = None):
         try:
             self.db.delete(entidad)
             self.db.commit()
