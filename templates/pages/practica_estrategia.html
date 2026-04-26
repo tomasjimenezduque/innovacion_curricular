@@ -3,8 +3,8 @@
 {% block contenido %}
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Gestión de Roles de Usuario</h6>
-        <a href="{{ url_for('rol.crear') }}" class="btn btn-primary btn-sm">+ Nuevo Rol</a>
+        <h6 class="m-0 font-weight-bold text-primary">Gestión de Prácticas Estratégicas</h6>
+        <a href="{{ url_for('practica_estrategia.crear') }}" class="btn btn-primary btn-sm">+ Nueva Práctica</a>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -12,31 +12,25 @@
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Tipo</th>
                         <th>Nombre</th>
                         <th>Descripción</th>
-                        <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for r in roles %}
+                    {% for p in practicas %}
                     <tr>
-                        <td>{{ r.id }}</td>
-                        <td><strong>{{ r.nombre }}</strong></td>
-                        <td>{{ r.descripcion or 'Sin descripción' }}</td>
-                        <td>
-                            {% if r.activo %}
-                            <span class="badge badge-success">Activo</span>
-                            {% else %}
-                            <span class="badge badge-secondary">Inactivo</span>
-                            {% endif %}
-                        </td>
+                        <td>{{ p.id }}</td>
+                        <td><span class="badge badge-primary">{{ p.tipo }}</span></td>
+                        <td><strong>{{ p.nombre }}</strong></td>
+                        <td>{{ p.descripcion }}</td>
                         <td>
                             <button class="btn btn-outline-secondary btn-sm">Editar</button>
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="5" class="text-center">No hay roles definidos</td></tr>
+                    <tr><td colspan="5" class="text-center">No hay prácticas registradas</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

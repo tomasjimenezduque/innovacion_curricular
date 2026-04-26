@@ -1,0 +1,41 @@
+{% extends "layout/base.html" %}
+{% block contenido %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Listado de Pasantías</h6>
+        <a href="{{ url_for('pasantia.crear') }}" class="btn btn-primary btn-sm">+ Nueva Pasantía</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Empresa</th>
+                        <th>País</th>
+                        <th>Programa (ID)</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in pasantias %}
+                    <tr>
+                        <td>{{ p.id }}</td>
+                        <td>{{ p.nombre }}</td>
+                        <td>{{ p.empresa }}</td>
+                        <td><span class="badge badge-light text-dark">{{ p.pais }}</span></td>
+                        <td>{{ p.programa }}</td>
+                        <td>
+                            <button class="btn btn-outline-secondary btn-sm">Ver más</button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="text-center">No hay pasantías registradas</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,119 +1,166 @@
-<!--
-╔══════════════════════════════════════════════════════════════════╗
-║  home.html — Página de inicio (bienvenida)                      ║
-╠══════════════════════════════════════════════════════════════════╣
-║                                                                  ║
-║  HERENCIA DE PLANTILLAS                                         ║
-║  ──────────────────────                                         ║
-║  Esta página "hereda" de base.html usando:                      ║
-║    extends "layout/base.html"                                   ║
-║                                                                  ║
-║  Eso significa que TODO lo de base.html se incluye              ║
-║  automáticamente (menú, estilos, Bootstrap, etc).               ║
-║  Esta página solo define los bloques que quiere personalizar:   ║
-║    - block titulo      → título de la pestaña                  ║
-║    - block encabezado  → texto de la barra superior            ║
-║    - block contenido   → contenido principal                   ║
-║                                                                  ║
-║  Analogía: es como rellenar un formulario pre-impreso.          ║
-║  El formulario (base.html) ya tiene el diseño, tú solo          ║
-║  llenas los espacios en blanco (los blocks).                    ║
-║                                                                  ║
-╚══════════════════════════════════════════════════════════════════╝
+<!-- 
+ HERENCIA DE PLANTILLAS
+Esta página "hereda" de base.html usando: extends "layout/base.html"
+Eso significa que TODO lo de base.html se incluye automáticamente (menú, estilos, Bootstrap, etc). 
+Esta página solo define los bloques que quiere personalizar: block titulo → título de la pestaña, 
+block encabezado → texto de la barra superior, block contenido → contenido principal.
+Analogía: es como rellenar un formulario pre-impreso. El formulario (base.html) ya tiene el diseño, 
+tú solo llenas los espacios en blanco (los blocks).
+Heredar de la plantilla base: extends "layout/base.html". A partir de aquí, esta página tiene TODO lo 
+de base.html. Solo necesitamos definir los bloques que queremos cambiar.
+Bloque título de la pestaña del navegador: block titulo — Inicio - CRUD Facturas — endblock. 
+Reemplaza el block titulo de base.html. La pestaña del navegador dirá: "Inicio - CRUD Facturas".
+Bloque texto de la barra superior: block encabezado — Inicio — endblock. 
+Reemplaza el block encabezado de base.html. La barra gris de arriba dirá: "Inicio".
+Bloque contenido principal de la página: block contenido. Aquí va todo lo que es ÚNICO de esta página. 
+Todo lo demás (menú, estilos, Bootstrap) viene de base.html.
+Card de Bootstrap: una "tarjeta" con borde y sombra. 
+Es un contenedor visual que agrupa información relacionada. div class card shadow-sm mt-3. 
+shadow-sm = sombra pequeña (da efecto de elevación). mt-3 = margin-top tamaño 3 (espacio arriba).
+div class card-body. card-body = zona interior de la tarjeta con padding.
+h3 — CRUD - Base de Datos Facturas. h3 = encabezado de nivel 3 (tamaño mediano). 
+Los encabezados van del h1 (más grande) al h6 (más pequeño).
+hr = línea horizontal. Separa secciones visualmente.
+p class lead — Bienvenido al frontend Flask que consume la API REST de FastAPI. p = párrafo de texto. 
+"lead" = clase Bootstrap que hace el texto un poco más grande y con color más suave (estilo "introducción").
+p — Este proyecto es un tutorial paso a paso (strong = texto en negrita, indica importancia semántica) 
+para aprender:
+Lista desordenada (bullets/viñetas): ul = unordered list (lista con viñetas).
+ li = list item (cada elemento de la lista). Los elementos son: Flask como framework web frontend. 
+ Consumo de API REST con la librería requests. Plantillas HTML con Jinja2 (herencia y componentes). 
+ Bootstrap 5 para estilos responsivos. Patrón de servicio genérico (ApiService). 
+ Operaciones CRUD completas (Crear, Leer, Actualizar, Eliminar). code = texto con formato 
+ de código (fuente monoespaciada). Se usa para nombres de clases, funciones, comandos, etc.
+hr.
+h5 — Tablas disponibles. Lista con enlace a url_for('producto.index') que genera "/producto". 
+a href = link/enlace. Al hacer clic, navega a esa URL. Texto del enlace: Producto (strong/negrita) — 
+Gestión completa de productos (código, nombre, stock, valor).
+Alerta informativa de Bootstrap: div class alert alert-info mt-3. alert-info = fondo azul claro 
+(informativo). Contenido: API Backend: La API FastAPI debe estar corriendo en http://localhost:8000 
+para que este frontend funcione correctamente. br = salto de línea (line break). 
+Ejecuta en la carpeta de la API: uvicorn main:app --reload.
+endblock. Fin del bloque "contenido". 
 -->
+{% extends 'layout/base.html' %}
 
-<!-- ─── Heredar de la plantilla base ──────────────────────────── -->
-{% extends "layout/base.html" %}
-<!-- A partir de aquí, esta página tiene TODO lo de base.html.
-     Solo necesitamos definir los bloques que queremos cambiar. -->
+{% block titulo %}Inicio - Innovación Curricular{% endblock %}
+{% block encabezado %}Módulo de Innovación Curricular{% endblock %}
 
-<!-- ─── Bloque: Título de la pestaña del navegador ────────────── -->
-{% block titulo %}Inicio - CRUD Facturas{% endblock %}
-<!-- Reemplaza el block titulo de base.html.
-     La pestaña del navegador dirá: "Inicio - CRUD Facturas" -->
-
-<!-- ─── Bloque: Texto de la barra superior ────────────────────── -->
-{% block encabezado %}Inicio{% endblock %}
-<!-- Reemplaza el block encabezado de base.html.
-     La barra gris de arriba dirá: "Inicio" -->
-
-<!-- ─── Bloque: Contenido principal de la página ──────────────── -->
 {% block contenido %}
-<!-- Aquí va todo lo que es ÚNICO de esta página.
-     Todo lo demás (menú, estilos, Bootstrap) viene de base.html. -->
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-5 bg-primary text-white rounded-3 shadow">
+                <h1 class="display-4 fw-bold">Sistema de Gestión del Conocimiento</h1>
+                <p class="col-md-10 fs-4">
+                    Plataforma centralizada para la administración de la estructura académica institucional, procesos de acreditación y estrategias pedagógicas.
+                </p>
+                <hr class="my-4 border-white">
+                <div class="d-flex align-items-center flex-wrap">
+                    <span class="badge bg-light text-primary p-2 px-3 me-3">Módulo 1.2</span>
+                    <span class="fs-5 me-4 border-end pe-4">Enfoque: <strong>Innovación Curricular</strong></span>
+                    <span class="fs-5">Caso creado por: <strong>Carlos Castro</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<!-- Card de Bootstrap: una "tarjeta" con borde y sombra.
-     Es un contenedor visual que agrupa información relacionada. -->
-<div class="card shadow-sm mt-3">
-    <!-- shadow-sm = sombra pequeña (da efecto de elevación)
-         mt-3     = margin-top tamaño 3 (espacio arriba) -->
+    <div class="row mb-5">
+        <div class="col-lg-8">
+            <h3 class="text-dark border-bottom pb-2">Descripción General</h3>
+            <p class="text-muted">
+                El sistema gestiona la estructura académica desde universidades y facultades hasta programas académicos. 
+                Soporta la administración de registros calificados, enfoques pedagógicos, pasantías, premios y 
+                alianzas institucionales con entidades externas (aliados), asegurando la calidad y normativa vigente.
+            </p>
+        </div>
+        <div class="col-lg-4">
+            <div class="alert alert-info shadow-sm">
+                <strong>Arquitectura:</strong><br>
+                Este módulo opera con una base de datos independiente y gestión de usuarios propia.
+            </div>
+        </div>
+    </div>
 
-    <div class="card-body">
-        <!-- card-body = zona interior de la tarjeta con padding -->
+    <h4 class="mb-4 text-secondary">Ejes de Gestión</h4>
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-primary mb-2"><i class="bi bi-bank fs-3"></i></div>
+                    <h5 class="card-title text-dark">Estructura Académica</h5>
+                    <p class="card-text small text-muted">Gestión de Sedes, Facultades y Programas Académicos a nivel nacional.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-success mb-2"><i class="bi bi-file-earmark-check fs-3"></i></div>
+                    <h5 class="card-title text-dark">Registros Calificados</h5>
+                    <p class="card-text small text-muted">Control de acreditación y cumplimiento de normativas institucionales.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-info mb-2"><i class="bi bi-lightbulb fs-3"></i></div>
+                    <h5 class="card-title text-dark">Modelos Pedagógicos</h5>
+                    <p class="card-text small text-muted">Estrategias, características de innovación y enfoques curriculares.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-warning mb-2"><i class="bi bi-handshake fs-3"></i></div>
+                    <h5 class="card-title text-dark">Alianzas y Aliados</h5>
+                    <p class="card-text small text-muted">Administración de entidades externas y convenios institucionales.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-danger mb-2"><i class="bi bi-trophy fs-3"></i></div>
+                    <h5 class="card-title text-dark">Pasantías y Premios</h5>
+                    <p class="card-text small text-muted">Seguimiento a actividades externas, premios y reconocimientos.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-secondary mb-2"><i class="bi bi-person-badge fs-3"></i></div>
+                    <h5 class="card-title text-dark">Acceso y Seguridad</h5>
+                    <p class="card-text small text-muted">Control de usuarios y permisos específicos para el módulo.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <h3>CRUD - Base de Datos Facturas</h3>
-        <!-- <h3> = encabezado de nivel 3 (tamaño mediano).
-             Los encabezados van del <h1> (más grande) al <h6> (más pequeño). -->
-
-        <hr>
-        <!-- <hr> = línea horizontal. Separa secciones visualmente. -->
-
-        <p class="lead">
-            Bienvenido al frontend Flask que consume la API REST de FastAPI.
-        </p>
-        <!-- <p> = párrafo de texto.
-             "lead" = clase Bootstrap que hace el texto un poco más grande
-             y con color más suave (estilo "introducción"). -->
-
-        <p>
-            Este proyecto es un <strong>tutorial paso a paso</strong> para aprender:
-        </p>
-        <!-- <strong> = texto en negrita. Indica importancia semántica. -->
-
-        <!-- Lista desordenada (bullets/viñetas) -->
-        <ul>
-            <!-- <ul> = unordered list (lista con viñetas).
-                 <li> = list item (cada elemento de la lista). -->
-            <li>Flask como framework web frontend</li>
-            <li>Consumo de API REST con la librería <code>requests</code></li>
-            <li>Plantillas HTML con Jinja2 (herencia y componentes)</li>
-            <li>Bootstrap 5 para estilos responsivos</li>
-            <li>Patrón de servicio genérico (<code>ApiService</code>)</li>
-            <li>Operaciones CRUD completas (Crear, Leer, Actualizar, Eliminar)</li>
-        </ul>
-        <!-- <code> = texto con formato de código (fuente monoespaciada).
-             Se usa para nombres de clases, funciones, comandos, etc. -->
-
-        <hr>
-
-        <h5>Tablas disponibles:</h5>
-        <ul>
-            <li>
-                <a href="{{ url_for('producto.index') }}">
-                    <strong>Producto</strong>
-                </a>
-                — Gestión completa de productos (código, nombre, stock, valor)
-            </li>
-            <!-- <a href="..."> = link/enlace. Al hacer clic, navega a esa URL.
-                 url_for('producto.index') genera "/producto". -->
-        </ul>
-
-        <!-- Alerta informativa de Bootstrap -->
-        <div class="alert alert-info mt-3">
-            <!-- alert-info = fondo azul claro (informativo) -->
-            <strong>API Backend:</strong>
-            La API FastAPI debe estar corriendo en
-            <code>http://localhost:8000</code>
-            para que este frontend funcione correctamente.
-            <br>
-            <!-- <br> = salto de línea (line break). -->
-            Ejecuta en la carpeta de la API:
-            <code>uvicorn main:app --reload</code>
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 bg-light shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="text-dark"><i class="bi bi-info-circle-fill me-2"></i>Sobre el Desarrollo</h5>
+                    <p class="text-secondary">
+                        La plataforma integra lo mejor de dos mundos: un núcleo de procesamiento de datos desarrollado en 
+                        <strong>FastAPI</strong> (utilizando patrones de Modelos y Repositorios) y una interfaz web robusta creada con 
+                        <strong>Flask</strong>. Esta integración permite que el sistema de Innovación Curricular sea escalable, eficiente y fácil de administrar.
+                    </p>
+                    <div class="alert alert-secondary mb-0 py-2">
+                        <small>
+                            <strong>Nota de Implementación:</strong> Para optimizar la experiencia de usuario, el módulo de 
+                            <em>Gestión de Usuarios</em> utiliza una arquitectura de <strong>Single Page CRUD</strong>, 
+                            mientras que el resto de los módulos emplean un sistema de navegación tradicional de 
+                            <strong>dos páginas por tabla</strong> para garantizar claridad y orden en los procesos académicos.
+                        </small>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-
 {% endblock %}
-<!-- Fin del bloque "contenido". Todo lo que está entre
-     block contenido y endblock reemplaza
-     el bloque del mismo nombre en base.html. -->

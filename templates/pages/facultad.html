@@ -1,0 +1,37 @@
+{% extends "layout/base.html" %}
+{% block contenido %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Listado de Facultades</h6>
+        <a href="{{ url_for('facultad.crear') }}" class="btn btn-primary btn-sm">+ Nueva Facultad</a>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Fundación</th>
+                    <th>Uni ID</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in facultades %}
+                <tr>
+                    <td>{{ f.id }}</td>
+                    <td>{{ f.nombre }}</td>
+                    <td>{{ f.tipo }}</td>
+                    <td>{{ f.fecha_fun }}</td>
+                    <td>{{ f.universidad }}</td>
+                    <td>
+                        <button class="btn btn-outline-secondary btn-sm">Editar</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

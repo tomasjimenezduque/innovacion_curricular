@@ -61,6 +61,36 @@ from routes.activ_academica import activ_academica_bp
 
 from routes.aliado import aliado_bp
 
+from routes.alianza import alianza_bp
+
+from routes.programa import programa_bp
+
+from routes.area_conocimiento import area_con_bp
+
+from routes.aspecto_normativo import aspecto_normativo_bp
+
+from routes.car_innovacion import car_innovacion_bp
+
+from routes.docente_departamento import docente_dept_bp
+
+from routes.enfoque import enfoque_bp
+
+from routes.facultad import facultad_bp
+
+from routes.pasantia import pasantia_bp
+
+from routes.practica_estrategia import practica_est_bp
+
+from routes.premio import premio_bp
+
+from routes.registro_calificado import rc_bp
+
+from routes.rol import rol_bp
+
+from routes.usuario import usuario_bp
+
+
+
 # ─── Crear la aplicación Flask ───────────────────────────────
 
 app = Flask(__name__)
@@ -101,6 +131,36 @@ app.register_blueprint(acreditacion_bp)
 app.register_blueprint(activ_academica_bp, url_prefix='/activ_academica')
 
 app.register_blueprint(aliado_bp, url_prefix='/aliado')
+
+app.register_blueprint(alianza_bp, url_prefix='/alianza')
+
+app.register_blueprint(programa_bp, url_prefix='/programa')
+
+app.register_blueprint(area_con_bp, url_prefix='/area_conocimiento')
+
+app.register_blueprint(aspecto_normativo_bp, url_prefix='/aspecto_normativo')
+
+app.register_blueprint(car_innovacion_bp, url_prefix='/car_innovacion')
+
+app.register_blueprint(docente_dept_bp, url_prefix='/docente_departamento')
+
+app.register_blueprint(enfoque_bp, url_prefix='/enfoque')
+
+app.register_blueprint(facultad_bp, url_prefix='/facultad')
+
+app.register_blueprint(pasantia_bp, url_prefix='/pasantia')
+
+app.register_blueprint(practica_est_bp, url_prefix='/practica_estrategia')
+
+app.register_blueprint(premio_bp, url_prefix='/premio')
+
+app.register_blueprint(rc_bp, url_prefix='/registro_calificado')
+
+app.register_blueprint(rol_bp, url_prefix='/rol')
+
+app.register_blueprint(usuario_bp, url_prefix='/usuario')
+
+
 
 
 # ─── Ejecutar el servidor ────────────────────────────────────

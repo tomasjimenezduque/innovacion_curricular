@@ -1,0 +1,42 @@
+{% extends "layout/base.html" %}
+
+{% block contenido %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Relación de Alianzas</h6>
+        <a href="{{ url_for('alianza.crear') }}" class="btn btn-primary btn-sm">+ Nueva Alianza</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Aliado (NIT)</th>
+                        <th>Programa (ID)</th>
+                        <th>Fecha Inicio</th>
+                        <th>Fecha Fin</th>
+                        <th>Docente</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for al in alianzas %}
+                    <tr>
+                        <td>{{ al.aliado }}</td>
+                        <td>{{ al.departamento }}</td>
+                        <td>{{ al.fecha_inicio }}</td>
+                        <td>{{ al.fecha_fin or 'Vigente' }}</td>
+                        <td>{{ al.docente or 'N/A' }}</td>
+                        <td>
+                            <button class="btn btn-outline-danger btn-sm">Finalizar</button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="text-center">No hay alianzas registradas</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

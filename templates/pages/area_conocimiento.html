@@ -1,0 +1,35 @@
+{% extends "layout/base.html" %}
+{% block contenido %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Áreas de Conocimiento</h6>
+        <a href="{{ url_for('area_conocimiento.crear') }}" class="btn btn-primary btn-sm">+ Nueva Área</a>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Gran Área</th>
+                    <th>Área</th>
+                    <th>Disciplina</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in areas %}
+                <tr>
+                    <td>{{ a.id }}</td>
+                    <td>{{ a.gran_area }}</td>
+                    <td>{{ a.area }}</td>
+                    <td>{{ a.disciplina }}</td>
+                    <td>
+                        <button class="btn btn-outline-secondary btn-sm">Editar</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

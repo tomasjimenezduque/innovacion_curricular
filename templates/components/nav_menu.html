@@ -46,7 +46,7 @@
           <!-- url_for('home.index') genera la URL "/" (página principal).
                text-decoration-none: quita el subrayado del link.
                text-white: color blanco para el texto. -->
-          <strong>CRUD Facturas</strong>
+          <strong>Innovación Curricular</strong>
      </a>
      </div>
 
@@ -86,19 +86,6 @@
                Inicio
           </a>
 
-          <!-- ═══════════════════════════════════════════════════
-               LINK: Producto
-               ═══════════════════════════════════════════════════ -->
-          <a class="nav-link nav-item
-               {% if '/producto' in request.path %}active{% endif %}"
-               href="{{ url_for('producto.index') }}">
-               <!-- '/producto' in request.path: verifica si la URL contiene
-                    "/producto". Así se activa tanto para /producto como para
-                    /producto?accion=nuevo (cualquier sub-página de producto).
-               -->
-               <span class="bi-list-nested-nav-menu"></span>
-               Producto
-          </a>
           <a class="nav-link nav-item
                {% if '/acreditacion' in request.path %}active{% endif %}"
                href="{{ url_for('acreditacion.index') }}">
@@ -120,6 +107,89 @@
             <span class="bi-list-nested-nav-menu"></span>
             Aliados
           </a>
-
+          <a class="nav-link nav-item 
+               {% if '/alianza' in request.path %}active{% endif %}" 
+               href="{{ url_for('alianza.index') }}">
+               <span class="bi-list-nested-nav-menu"></span>
+               Alianzas
+          </a>
+          <a class="nav-link nav-item 
+               {% if '/programa' in request.path %}active{% endif %}" 
+               href="{{ url_for('programa.index') }}">
+               <span class="bi-list-nested-nav-menu"></span>
+               Programas
+          </a>
+          
+          <a class="nav-link nav-item {% if '/area_conocimiento' in request.path %}active{% endif %}" 
+               href="{{ url_for('area_conocimiento.index') }}">
+               <span class="bi-list-nested-nav-menu"></span>
+               Áreas de Conocimiento
+          </a>
+          <a class="nav-link nav-item 
+               {% if '/aspecto_normativo' in request.path %}active{% endif %}" 
+               href="{{ url_for('aspecto_normativo.index') }}">
+               <span class="bi-list-nested-nav-menu"></span>
+               Normativas
+          </a>
+          <a class="nav-link nav-item 
+               {% if '/car_innovacion' in request.path %}active{% endif %}" 
+               href="{{ url_for('car_innovacion.index') }}">
+               <span class="bi-list-nested-nav-menu"></span>
+               Innovación
+          </a>
+          <a class="nav-link nav-item 
+               {% if '/docente_departamento' in request.path %}active{% endif %}" 
+               href="{{ url_for('docente_departamento.index') }}">
+               <span class="bi-list-nested-nav-menu"></span>
+               Docentes Depto
+          </a>
+          <a class="nav-link nav-item 
+               {% if '/enfoque' in request.path %}active{% endif %}" 
+               href="{{ url_for('enfoque.index') }}">
+               <span class="bi-list-nested-nav-menu"></span>
+               Enfoques
+          </a>
+          <a class="nav-link nav-item 
+               {% if '/facultad' in request.path %}active{% endif %}" 
+               href="{{ url_for('facultad.index') }}">
+               <span class="bi-list-nested-nav-menu"></span>
+               Facultades
+          </a>
+          <a class="nav-link nav-item 
+               {% if '/pasantia' in request.path %}active{% endif %}" 
+               href="{{ url_for('pasantia.index') }}">
+               <span class="bi-list-nested-nav-menu"></span>
+               Pasantías
+          </a>
+          <a class="nav-link nav-item 
+               {% if '/practica_estrategia' in request.path %}active{% endif %}" 
+               href="{{ url_for('practica_estrategia.index') }}">
+               <span class="bi-list-nested-nav-menu"></span>
+               P. Estratégicas
+          </a>
+          <a class="nav-link nav-item 
+               {% if '/premio' in request.path %}active{% endif %}" 
+               href="{{ url_for('premio.index') }}">
+               <span class="bi-list-nested-nav-menu"></span>
+               Premios
+          </a>
+          <a class="nav-link nav-item 
+               {% if '/registro_calificado' in request.path %}active{% endif %}" 
+               href="{{ url_for('registro_calificado.index') }}">
+               <span class="bi-list-nested-nav-menu"></span>
+               Registros Calificados
+          </a>
+          <a class="nav-link nav-item 
+               {% if '/rol' in request.path %}active{% endif %}" 
+               href="{{ url_for('rol.index') }}">
+               <span class="bi-list-nested-nav-menu"></span>
+               Roles
+          </a>
+          <a class="nav-link nav-item 
+               {% if '/usuario' in request.path %}active{% endif %}" 
+               href="{{ url_for('usuario.index') }}">
+               <span class="bi-list-nested-nav-menu"></span>
+               Usuarios
+          </a>
           </nav>
      </div>

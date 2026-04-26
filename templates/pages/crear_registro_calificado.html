@@ -1,0 +1,84 @@
+{% extends "layout/base.html" %}
+
+{% block contenido %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Formulario de Registro Calificado</h6>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row border-bottom mb-3 pb-2">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Código SNIES</label>
+                    <input type="number" name="codigo" class="form-control" placeholder="Ej: 102345" required>
+                </div>
+                <div class="col-md-8 mb-3">
+                    <label class="form-label">Programa Académico Relacionado</label>
+                    <select name="programa" class="form-control" required>
+                        <option value="">Seleccione el programa...</option>
+                        {% for p in programas %}
+                        <option value="{{ p.id }}">{{ p.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label>Cant. Créditos</label>
+                    <input type="text" name="cant_creditos" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <label>Horas Acompañadas</label>
+                    <input type="text" name="hora_acom" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <label>Horas Independientes</label>
+                    <input type="text" name="hora_ind" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <label>Metodología</label>
+                    <select name="metodologia" class="form-control">
+                        <option value="Presencial">Presencial</option>
+                        <option value="Virtual">Virtual</option>
+                        <option value="Distancia">Distancia</option>
+                        <option value="Dual">Dual</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label>Duración (Años)</label>
+                    <input type="text" name="duracion_anios" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <label>Duración (Semestres)</label>
+                    <input type="text" name="duracion_semestres" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label>Tipo de Titulación</label>
+                    <input type="text" name="tipo_titulacion" class="form-control" placeholder="Ej: Ingeniero de Software" required>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label>Fecha Inicio Vigencia</label>
+                    <input type="date" name="fecha_inicio" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label>Fecha Fin Vigencia</label>
+                    <input type="date" name="fecha_fin" class="form-control" required>
+                </div>
+            </div>
+
+            <hr>
+            <div class="d-flex justify-content-end">
+                <a href="{{ url_for('registro_calificado.index') }}" class="btn btn-secondary mr-2">Cancelar</a>
+                <button type="submit" class="btn btn-success px-4">Guardar Registro</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "layout/base.html" %}
+
+{% block contenido %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Registros Calificados</h6>
+        <a href="{{ url_for('registro_calificado.crear') }}" class="btn btn-primary btn-sm">+ Nuevo Registro</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead>
+                    <tr>
+                        <th>Código (SNIES)</th>
+                        <th>Programa (ID)</th>
+                        <th>Metodología</th>
+                        <th>Titulacion</th>
+                        <th>Créditos</th>
+                        <th>Vigencia</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in registros %}
+                    <tr>
+                        <td><strong>{{ r.codigo }}</strong></td>
+                        <td>{{ r.programa }}</td>
+                        <td>{{ r.metodologia }}</td>
+                        <td>{{ r.tipo_titulacion }}</td>
+                        <td>{{ r.cant_creditos }}</td>
+                        <td>{{ r.fecha_inicio }} / {{ r.fecha_fin }}</td>
+                        <td>
+                            <button class="btn btn-outline-info btn-sm">Detalle</button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="text-center">No hay registros calificados</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

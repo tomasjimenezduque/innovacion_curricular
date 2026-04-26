@@ -1,65 +1,32 @@
-"""
-rol.py - Blueprint CRUD para la tabla Rol.
-
-Campos: id (PK, int), nombre
-"""
-
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from services.api_service import ApiService
+import requests
 
-bp = Blueprint('rol', __name__)
-api = ApiService()
-TABLA = 'rol'
-CLAVE = 'id'
+rol_bp = Blueprint('rol', __name__)
 
+API_URL = "http://127.0.0.1:8000/api/rol"
 
-@bp.route('/rol')
+@rol_bp.route('/')
 def index():
-    limite = request.args.get('limite', type=int)
-    accion = request.args.get('accion', '')
-    valor_clave = request.args.get('clave', '')
+    try:
+        response = requests.get(API_URL)
+        datos = response.json().get('datos', []) if response.status_code == 200 else []
+        return render_template('pages/rol.html', roles=datos)
+    except Exception as e:
+        print(f"Error Rol: {e}")
+        return render_template('pages/rol.html', roles=[])
 
-    registros = api.listar(TABLA, limite)
-    mostrar_formulario = accion in ('nuevo', 'editar')
-    editando = accion == 'editar'
-
-    registro = None
-    if editando and valor_clave:
-        registro = next(
-            (r for r in registros if str(r.get(CLAVE)) == str(valor_clave)), None
-        )
-
-    return render_template('pages/rol.html',
-        registros=registros, mostrar_formulario=mostrar_formulario,
-        editando=editando, registro=registro, limite=limite
-    )
-
-
-@bp.route('/rol/crear', methods=['POST'])
+@rol_bp.route('/crear', methods=['GET', 'POST'])
 def crear():
-    datos = {
-        'id':     request.form.get('id', 0, type=int),
-        'nombre': request.form.get('nombre', '')
-    }
-    exito, mensaje = api.crear(TABLA, datos)
-    flash(mensaje, 'success' if exito else 'danger')
-    return redirect(url_for('rol.index'))
-
-
-@bp.route('/rol/actualizar', methods=['POST'])
-def actualizar():
-    valor = request.form.get('id', '')
-    datos = {
-        'nombre': request.form.get('nombre', '')
-    }
-    exito, mensaje = api.actualizar(TABLA, CLAVE, valor, datos)
-    flash(mensaje, 'success' if exito else 'danger')
-    return redirect(url_for('rol.index'))
-
-
-@bp.route('/rol/eliminar', methods=['POST'])
-def eliminar():
-    valor = request.form.get('id', '')
-    exito, mensaje = api.eliminar(TABLA, CLAVE, valor)
-    flash(mensaje, 'success' if exito else 'danger')
-    return redirect(url_for('rol.index'))
+    if request.method == 'POST':
+        nuevo_rol = {
+            "nombre": request.form.get('nombre'),
+            "descripcion": request.form.get('descripcion'),
+            "activo": True if request.form.get('activo') else False
+        }
+        response = requests.post(API_URL, json=nuevo_rol)
+        if response.status_code == 201:
+            flash("Rol creado exitosamente", "success")
+            return redirect(url_for('rol.index'))
+        flash("Error al crear el rol", "danger")
+    
+    return render_template('pages/crear_rol.html')

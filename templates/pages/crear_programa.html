@@ -1,0 +1,67 @@
+{% extends "layout/base.html" %}
+{% block contenido %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Registrar Programa Académico</h6>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Nombre del Programa</label>
+                    <input type="text" name="nombre" class="form-control" required>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label>Tipo</label>
+                    <select name="tipo" class="form-control">
+                        <option value="Pregrado">Pregrado</option>
+                        <option value="Postgrado">Postgrado</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label>Nivel</label>
+                    <input type="text" name="nivel" class="form-control" placeholder="Ej: Profesional" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label>Facultad</label>
+                    <select name="facultad" class="form-control" required>
+                        {% for f in facultades %}
+                        <option value="{{ f.id }}">{{ f.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label>Ciudad</label>
+                    <input type="text" name="ciudad" class="form-control" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label>Cohortes</label>
+                    <input type="number" name="numero_cohortes" class="form-control" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label>F. Creación</label>
+                    <input type="date" name="fecha_creacion" class="form-control" required>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label>F. Actualización</label>
+                    <input type="date" name="fecha_actualizacion" class="form-control" required>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label>Cant. Graduados</label>
+                    <input type="number" name="cant_graduados" class="form-control" required>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label>F. Cierre (Opcional)</label>
+                    <input type="date" name="fecha_cierre" class="form-control">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success">Guardar Programa</button>
+            <a href="{{ url_for('programa.index') }}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

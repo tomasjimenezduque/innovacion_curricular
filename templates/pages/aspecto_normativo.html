@@ -1,0 +1,40 @@
+{% extends "layout/base.html" %}
+
+{% block contenido %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Gestión de Aspectos Normativos</h6>
+        <a href="{{ url_for('aspecto_normativo.crear') }}" class="btn btn-primary btn-sm">+ Nueva Norma</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Descripción</th>
+                        <th>Fuente</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in aspectos %}
+                    <tr>
+                        <td>{{ a.id }}</td>
+                        <td>{{ a.tipo }}</td>
+                        <td>{{ a.descripcion }}</td>
+                        <td>{{ a.fuente }}</td>
+                        <td>
+                            <button class="btn btn-outline-secondary btn-sm">Editar</button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="text-center">No hay normativas registradas</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

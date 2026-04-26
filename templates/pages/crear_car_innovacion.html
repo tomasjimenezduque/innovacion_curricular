@@ -1,0 +1,36 @@
+{% extends "layout/base.html" %}
+
+{% block contenido %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Registrar Característica de Innovación</h6>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label>Nombre de la Característica</label>
+                    <input type="text" name="nombre" class="form-control" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label>Tipo</label>
+                    <select name="tipo" class="form-control" required>
+                        <option value="Tecnológica">Tecnológica</option>
+                        <option value="Social">Social</option>
+                        <option value="Pedagógica">Pedagógica</option>
+                        <option value="Empresarial">Empresarial</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label>Descripción detallada</label>
+                <textarea name="descripcion" class="form-control" rows="4" required></textarea>
+            </div>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-success">Guardar Registro</button>
+                <a href="{{ url_for('car_innovacion.index') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

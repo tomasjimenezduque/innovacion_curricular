@@ -1,0 +1,50 @@
+{% extends "layout/base.html" %}
+
+{% block contenido %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Registrar Nuevo Reconocimiento</h6>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Nombre del Premio</label>
+                    <input type="text" name="nombre" class="form-control" maxlength="45" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Entidad Otorgante</label>
+                    <input type="text" name="entidad_otorgante" class="form-control" maxlength="45" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label>Fecha</label>
+                    <input type="date" name="fecha" class="form-control" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label>País</label>
+                    <input type="text" name="pais" class="form-control" maxlength="45" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label>Programa Vinculado</label>
+                    <select name="programa" class="form-control" required>
+                        <option value="">Seleccione...</option>
+                        {% for prog in programas %}
+                        <option value="{{ prog.id }}">{{ prog.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label>Descripción Breve (Máx. 45 car.)</label>
+                <textarea name="descripcion" class="form-control" rows="2" maxlength="45" required></textarea>
+            </div>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-success">Guardar Premio</button>
+                <a href="{{ url_for('premio.index') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
