@@ -1,28 +1,32 @@
-# main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from controllers.aa_rc_controller import router as aa_rc_router
 
-# 1. Creamos la instancia de FastAPI
+# 1. Importamos solo los controladores que existen
+from controllers.aa_rc_controller import router as aa_rc_router
+from controllers.universidad_controller import router as universidad_router
+
+# 2. Instancia de FastAPI
 app = FastAPI(
     title="API Innovación Curricular",
     description="Sistema de gestión para Actividades Académicas y Registros Calificados",
     version="1.0.0"
 )
 
-# 2. Configuración de CORS (Importante para que el frontend pueda hablar con la API)
+# 3. Configuración de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En producción usa la URL de tu frontend
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 3. Incluimos tus rutas (Controllers)
-app.include_router(aa_rc_router)
+# 4. Inclusión de Rutas con el prefijo "/api"
+# Eliminamos la línea de producto_router para evitar el ModuleNotFoundError
+app.include_router(aa_rc_router, prefix="/api", tags=["Actividades"])
+app.include_router(universidad_router, prefix="/api", tags=["Universidades"])
 
-# 4. Ruta de bienvenida (opcional)
+# 5. Ruta de bienvenida
 @app.get("/")
 def inicio():
     return {

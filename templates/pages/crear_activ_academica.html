@@ -1,0 +1,81 @@
+{% extends "layout/base.html" %}
+
+{% block titulo %}nueva actividad{% endblock %}
+{% block encabezado %}crear nueva actividad académica{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">datos de la actividad</h6>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('activ_academica.crear') }}" method="POST">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">nombre de la actividad</label>
+                        <input type="text" name="nombre" class="form-control" placeholder="ej: cálculo multivariable" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">tipo</label>
+                        <select name="tipo" class="form-control" required>
+                            <option value="teórica">teórica</option>
+                            <option value="práctica">práctica</option>
+                            <option value="teórico-práctica">teórico-práctica</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">número de créditos</label>
+                        <input type="number" name="num_creditos" class="form-control" min="1" max="10" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">área de formación</label>
+                        <input type="text" name="area_formacion" class="form-control" placeholder="ej: ciencias básicas" required>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">h. acompañadas</label>
+                        <input type="number" name="h_acom" class="form-control" placeholder="h_acom" required>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">h. independientes</label>
+                        <input type="number" name="h_indep" class="form-control" placeholder="h_indep" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">idioma</label>
+                        <input type="text" name="idioma" class="form-control" value="español" required>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+                <h6 class="text-secondary">configuración espejo</h6>
+                
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">¿es espejo?</label>
+                        <select name="espejo" class="form-control" id="selectEspejo">
+                            <option value="0">no</option>
+                            <option value="1">sí</option>
+                        </select>
+                    </div>
+                    <div class="col-md-5 mb-3">
+                        <label class="form-label">entidad espejo</label>
+                        <input type="text" name="entidad_espejo" class="form-control" placeholder="nombre de la universidad">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">país espejo</label>
+                        <input type="text" name="pais_espejo" class="form-control" placeholder="país">
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex justify-content-end">
+                    <a href="{{ url_for('activ_academica.index') }}" class="btn btn-secondary me-2">cancelar</a>
+                    <button type="submit" class="btn btn-primary">guardar actividad</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

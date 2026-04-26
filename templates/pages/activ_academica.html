@@ -1,0 +1,64 @@
+{% extends "layout/base.html" %}
+
+{% block titulo %}actividades académicas{% endblock %}
+{% block encabezado %}gestión de actividades académicas{% endblock %}
+
+{% block contenido %}
+<div class="card shadow-sm">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">listado de actividades</h6>
+        <a href="{{ url_for('activ_academica.crear') }}" class="btn btn-primary btn-sm shadow-sm">
+            <i class="bi bi-plus-circle"></i> + nueva actividad
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="tabla_actividades">
+                <thead class="table-light">
+                    <tr>
+                        <th>id</th>
+                        <th>nombre</th>
+                        <th>tipo</th>
+                        <th>créditos</th>
+                        <th>horas (acom/ind)</th>
+                        <th>idioma</th>
+                        <th>espejo</th>
+                        <th>acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in actividades %}
+                    <tr>
+                        <td>{{ item.id }}</td>
+                        <td><strong>{{ item.nombre }}</strong></td>
+                        <td><span class="badge bg-info text-dark">{{ item.tipo }}</span></td>
+                        <td>{{ item.num_creditos }}</td>
+                        <td>{{ item.h_acom }}h / {{ item.h_indep }}h</td>
+                        <td>{{ item.idioma }}</td>
+                        <td>
+                            {% if item.espejo == 1 %}
+                                <span class="text-success">sí ({{ item.entidad_espejo }})</span>
+                            {% else %}
+                                <span class="text-muted">no</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="#" class="btn btn-outline-secondary btn-sm">editar</a>
+                                <button class="btn btn-outline-danger btn-sm">eliminar</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            no hay actividades registradas actualmente.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

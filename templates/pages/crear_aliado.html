@@ -1,0 +1,45 @@
+{% extends "layout/base.html" %}
+
+{% block contenido %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Registrar Aliado</h6>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label>NIT</label>
+                    <input type="number" name="nit" class="form-control" required>
+                </div>
+                <div class="col-md-8 mb-3">
+                    <label>Razón Social</label>
+                    <input type="text" name="razon_social" class="form-control" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Nombre de Contacto</label>
+                    <input type="text" name="nombre_contacto" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Correo Electrónico</label>
+                    <input type="email" name="correo" class="form-control" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Teléfono</label>
+                    <input type="text" name="telefono" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Ciudad</label>
+                    <input type="text" name="ciudad" class="form-control" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success">Guardar Aliado</button>
+            <a href="{{ url_for('aliado.index') }}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,115 +1,125 @@
-<!--
-╔══════════════════════════════════════════════════════════════════╗
-║  nav_menu.html — Menú de navegación lateral (sidebar)           ║
-╠══════════════════════════════════════════════════════════════════╣
-║                                                                  ║
-║  Este archivo se INCLUYE dentro de base.html usando:            ║
-║    include "components/nav_menu.html"                           ║
-║                                                                  ║
-║  Contiene:                                                      ║
-║  1. Logo/título de la aplicación ("CRUD Facturas")              ║
-║  2. Botón hamburguesa (☰) para móviles                         ║
-║  3. Lista de enlaces de navegación                              ║
-║                                                                  ║
-║  ¿QUÉ ES NAVEGACIÓN?                                           ║
-║  Es el menú con links que permiten ir de una página a otra.     ║
-║  Cada link tiene un ícono y un nombre.                          ║
-║  El link de la página actual se resalta (estado "activo").      ║
-║                                                                  ║
-╚══════════════════════════════════════════════════════════════════╝
--->
+     <!--
+     ╔══════════════════════════════════════════════════════════════════╗
+     ║  nav_menu.html — Menú de navegación lateral (sidebar)           ║
+     ╠══════════════════════════════════════════════════════════════════╣
+     ║                                                                  ║
+     ║  Este archivo se INCLUYE dentro de base.html usando:            ║
+     ║    include "components/nav_menu.html"                           ║
+     ║                                                                  ║
+     ║  Contiene:                                                      ║
+     ║  1. Logo/título de la aplicación ("CRUD Facturas")              ║
+     ║  2. Botón hamburguesa (☰) para móviles                         ║
+     ║  3. Lista de enlaces de navegación                              ║
+     ║                                                                  ║
+     ║  ¿QUÉ ES NAVEGACIÓN?                                           ║
+     ║  Es el menú con links que permiten ir de una página a otra.     ║
+     ║  Cada link tiene un ícono y un nombre.                          ║
+     ║  El link de la página actual se resalta (estado "activo").      ║
+     ║                                                                  ║
+     ╚══════════════════════════════════════════════════════════════════╝
+     -->
 
-<!-- ─── Toggle para móviles (menú hamburguesa) ───────────────── -->
-<!-- En celulares, el menú se oculta y aparece un botón ☰.
-     Este checkbox controla si el menú está abierto o cerrado.
-     Es un truco de CSS puro (sin JavaScript):
-       - checkbox NO marcado → menú oculto
-       - checkbox marcado     → menú visible
-     El <label> es el botón visible que el usuario toca. -->
-<input type="checkbox" id="nav-toggle" class="nav-toggle-checkbox">
-<!-- Este checkbox está oculto con CSS (display:none).
-     Solo se usa internamente para controlar el menú. -->
+     <!-- ─── Toggle para móviles (menú hamburguesa) ───────────────── -->
+     <!-- En celulares, el menú se oculta y aparece un botón ☰.
+          Este checkbox controla si el menú está abierto o cerrado.
+          Es un truco de CSS puro (sin JavaScript):
+          - checkbox NO marcado → menú oculto
+          - checkbox marcado     → menú visible
+          El <label> es el botón visible que el usuario toca. -->
+     <input type="checkbox" id="nav-toggle" class="nav-toggle-checkbox">
+     <!-- Este checkbox está oculto con CSS (display:none).
+          Solo se usa internamente para controlar el menú. -->
 
-<label for="nav-toggle" class="nav-toggle-label">
-    <!-- for="nav-toggle" conecta este label con el checkbox de arriba.
-         Al hacer clic en el label, se marca/desmarca el checkbox. -->
-    <span class="hamburger-icon">&#9776;</span>
-    <!-- &#9776; es el carácter Unicode "☰" (ícono hamburguesa).
-         Son las tres rayitas horizontales que representan un menú. -->
-</label>
+     <label for="nav-toggle" class="nav-toggle-label">
+     <!-- for="nav-toggle" conecta este label con el checkbox de arriba.
+          Al hacer clic en el label, se marca/desmarca el checkbox. -->
+     <span class="hamburger-icon">&#9776;</span>
+     <!-- &#9776; es el carácter Unicode "☰" (ícono hamburguesa).
+          Son las tres rayitas horizontales que representan un menú. -->
+     </label>
 
-<!-- ─── Logo / Título de la aplicación ───────────────────────── -->
-<div class="navbar-brand px-3 py-2">
-    <!-- px-3 = padding horizontal tamaño 3 (espaciado lateral)
-         py-2 = padding vertical tamaño 2 (espaciado arriba/abajo) -->
-    <a href="{{ url_for('home.index') }}" class="text-decoration-none text-white">
-        <!-- url_for('home.index') genera la URL "/" (página principal).
-             text-decoration-none: quita el subrayado del link.
-             text-white: color blanco para el texto. -->
-        <strong>CRUD Facturas</strong>
-    </a>
-</div>
+     <!-- ─── Logo / Título de la aplicación ───────────────────────── -->
+     <div class="navbar-brand px-3 py-2">
+     <!-- px-3 = padding horizontal tamaño 3 (espaciado lateral)
+          py-2 = padding vertical tamaño 2 (espaciado arriba/abajo) -->
+     <a href="{{ url_for('home.index') }}" class="text-decoration-none text-white">
+          <!-- url_for('home.index') genera la URL "/" (página principal).
+               text-decoration-none: quita el subrayado del link.
+               text-white: color blanco para el texto. -->
+          <strong>CRUD Facturas</strong>
+     </a>
+     </div>
 
-<!-- ─── Lista de navegación ──────────────────────────────────── -->
-<!-- "nav-scrollable" es la zona que contiene los links.
-     En móviles, se oculta/muestra con el checkbox. -->
-<div class="nav-scrollable">
-    <nav class="nav flex-column">
-        <!-- nav: clase Bootstrap para listas de navegación.
-             flex-column: apila los items verticalmente. -->
+     <!-- ─── Lista de navegación ──────────────────────────────────── -->
+     <!-- "nav-scrollable" es la zona que contiene los links.
+          En móviles, se oculta/muestra con el checkbox. -->
+     <div class="nav-scrollable">
+     <nav class="nav flex-column">
+          <!-- nav: clase Bootstrap para listas de navegación.
+               flex-column: apila los items verticalmente. -->
 
-        <!-- ═══════════════════════════════════════════════════
-             LINK: Inicio
-             ═══════════════════════════════════════════════════ -->
-        <a class="nav-link nav-item
-            {% if request.path == '/' %}active{% endif %}"
-            href="{{ url_for('home.index') }}">
-            <!-- EXPLICACIÓN DETALLADA:
+          <!-- ═══════════════════════════════════════════════════
+               LINK: Inicio
+               ═══════════════════════════════════════════════════ -->
+          <a class="nav-link nav-item
+               {% if request.path == '/' %}active{% endif %}"
+               href="{{ url_for('home.index') }}">
+               <!-- EXPLICACIÓN DETALLADA:
 
-                 class="nav-link nav-item ..."
-                   - nav-link: estilo Bootstrap para links de navegación
-                   - nav-item: elemento de navegación
+                    class="nav-link nav-item ..."
+                    - nav-link: estilo Bootstrap para links de navegación
+                    - nav-item: elemento de navegación
 
-                 {% if request.path == '/' %}active{% endif %}
-                   - request.path: la URL actual del navegador
-                   - Si estamos en "/" (home), agrega la clase "active"
-                   - "active" resalta el link (fondo más claro en CSS)
-                   - Es como decir: "si estoy en esta página, márcala"
+                    {% if request.path == '/' %}active{% endif %}
+                    - request.path: la URL actual del navegador
+                    - Si estamos en "/" (home), agrega la clase "active"
+                    - "active" resalta el link (fondo más claro en CSS)
+                    - Es como decir: "si estoy en esta página, márcala"
 
-                 href="{{ url_for('home.index') }}"
-                   - url_for genera la URL de la función index() del
-                     Blueprint "home"
-                   - Resultado: href="/"
-            -->
-            <!-- Ícono (cuadrado CSS que representa una casita) -->
-            <span class="bi-house-door-fill-nav-menu"></span>
-            Inicio
-        </a>
+                    href="{{ url_for('home.index') }}"
+                    - url_for genera la URL de la función index() del
+                         Blueprint "home"
+                    - Resultado: href="/"
+               -->
+               <!-- Ícono (cuadrado CSS que representa una casita) -->
+               <span class="bi-house-door-fill-nav-menu"></span>
+               Inicio
+          </a>
 
-        <!-- ═══════════════════════════════════════════════════
-             LINK: Producto
-             ═══════════════════════════════════════════════════ -->
-        <a class="nav-link nav-item
-            {% if '/producto' in request.path %}active{% endif %}"
-            href="{{ url_for('producto.index') }}">
-            <!-- '/producto' in request.path: verifica si la URL contiene
-                 "/producto". Así se activa tanto para /producto como para
-                 /producto?accion=nuevo (cualquier sub-página de producto).
-            -->
+          <!-- ═══════════════════════════════════════════════════
+               LINK: Producto
+               ═══════════════════════════════════════════════════ -->
+          <a class="nav-link nav-item
+               {% if '/producto' in request.path %}active{% endif %}"
+               href="{{ url_for('producto.index') }}">
+               <!-- '/producto' in request.path: verifica si la URL contiene
+                    "/producto". Así se activa tanto para /producto como para
+                    /producto?accion=nuevo (cualquier sub-página de producto).
+               -->
+               <span class="bi-list-nested-nav-menu"></span>
+               Producto
+          </a>
+          <a class="nav-link nav-item
+               {% if '/acreditacion' in request.path %}active{% endif %}"
+               href="{{ url_for('acreditacion.index') }}">
+               
+               <span class="bi-list-nested-nav-menu"></span>
+               Acreditación
+          </a>
+
+          <a class="nav-link nav-item 
+            {% if '/activ_academica' in request.path %}active{% endif %}" 
+            href="{{ url_for('activ_academica.index') }}">
             <span class="bi-list-nested-nav-menu"></span>
-            Producto
-        </a>
+            Actividades
+          </a>
 
-        <!-- ═══════════════════════════════════════════════════
-             AGREGAR MÁS LINKS AQUÍ (futuro)
-             ═══════════════════════════════════════════════════
-             Para agregar una nueva página al menú, copia el bloque
-             de Producto (arriba) y cambia:
-               1. La condición del if (ej: '/empresa' in request.path)
-               2. El href (ej: url_for('empresa.index'))
-               3. El texto (ej: "Empresa")
-             Ver el tutorial_frontend.md para un ejemplo completo.
-             ═══════════════════════════════════════════════════ -->
+          <a class="nav-link nav-item 
+            {% if '/aliado' in request.path %}active{% endif %}" 
+            href="{{ url_for('aliado.index') }}">
+            <span class="bi-list-nested-nav-menu"></span>
+            Aliados
+          </a>
 
-    </nav>
-</div>
+          </nav>
+     </div>

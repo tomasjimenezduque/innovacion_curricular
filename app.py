@@ -45,6 +45,7 @@ from config import SECRET_KEY
 
 from routes.home import home_bp
 from routes.producto import producto_bp
+from routes.universidad import  universidad_bp
 # Importa los Blueprints (grupos de rutas).
 # home_bp     → maneja la página principal (/)
 # producto_bp → maneja las páginas de producto (/producto, /producto/crear, etc.)
@@ -54,6 +55,11 @@ from routes.producto import producto_bp
 # Sin Blueprints, TODAS las rutas estarían en app.py (un archivo enorme).
 # Con Blueprints, cada "sección" de la web tiene su propio archivo.
 
+from routes.acreditacion import acreditacion_bp
+
+from routes.activ_academica import activ_academica_bp
+
+from routes.aliado import aliado_bp
 
 # ─── Crear la aplicación Flask ───────────────────────────────
 
@@ -87,6 +93,14 @@ app.register_blueprint(producto_bp)
 # 2. Define un Blueprint en ese archivo
 # 3. Importa el Blueprint aquí
 # 4. Registra con app.register_blueprint(empresa_bp)
+app.register_blueprint(universidad_bp)
+
+app.register_blueprint(acreditacion_bp)
+
+
+app.register_blueprint(activ_academica_bp, url_prefix='/activ_academica')
+
+app.register_blueprint(aliado_bp, url_prefix='/aliado')
 
 
 # ─── Ejecutar el servidor ────────────────────────────────────

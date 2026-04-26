@@ -57,7 +57,7 @@ async def actualizar(
         exito, mensaje = await servicio.actualizar(id, data, esquema)
 
         if exito:
-            return {
+            return { 
                 "mensaje": mensaje,
                 "datos_actualizados": data
             }

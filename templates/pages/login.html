@@ -1,0 +1,43 @@
+{#
+  login.html - Pagina de inicio de sesion.
+  El formulario envia POST a /login. Flask lo procesa en routes/auth.py.
+  Si las credenciales son correctas, redirige al inicio.
+  Si son incorrectas, muestra un mensaje flash (alerta roja).
+  Los campos name="email" y name="contrasena" se leen con request.form.get().
+#}
+{% extends 'layout/base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height:70vh">
+    <div class="card shadow" style="width:400px">
+        <div class="card-header text-center" style="background:var(--primary, #0d6efd);color:white">
+            <h4 class="mb-0">FrontFlaskTutorial</h4>
+        </div>
+        <div class="card-body p-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show py-2" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endwith %}
+            <form method="POST" action="{{ url_for('auth.login_post') }}">
+                <div class="mb-3">
+                    <label class="form-label">Correo electronico</label>
+                    <input type="email" class="form-control" name="email" required autofocus>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Contrasena</label>
+                    <input type="password" class="form-control" name="contrasena" required>
+                </div>
+                <button class="btn btn-primary w-100" type="submit">Iniciar sesion</button>
+            </form>
+            <div class="text-center mt-3">
+                <a href="{{ url_for('auth.recuperar_contrasena') }}" class="small">Olvido su contrasena?</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

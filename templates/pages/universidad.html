@@ -1,0 +1,136 @@
+{% extends "layout/base.html" %}
+
+{% block titulo %}Universidades - Innovación Curricular{% endblock %}
+{% block encabezado %}Gestión de Universidades{% endblock %}
+
+{% block contenido %}
+
+<div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+    <a href="{{ url_for('universidad.index', accion='nuevo') }}" 
+       class="btn btn-primary">
+        + Nueva Universidad
+    </a>
+
+    <form method="GET" action="{{ url_for('universidad.index') }}" class="d-flex gap-2">
+        <input type="number" 
+               name="limite" 
+               class="form-control form-control-sm" 
+               placeholder="Límite" 
+               value="{{ limite or '' }}" 
+               min="1" 
+               style="width: 120px;">
+        <button type="submit" class="btn btn-outline-secondary btn-sm">
+            Filtrar
+        </button>
+        <a href="{{ url_for('universidad.index') }}" class="btn btn-outline-dark btn-sm">
+            Todas
+        </a>
+    </form>
+</div>
+
+{% if accion %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        {% if accion == "nuevo" %}
+            Crear Nueva Universidad
+        {% else %}
+            Editar Universidad ID: {{ universidad_editar.id }}
+        {% endif %}
+    </div>
+
+    <div class="card-body">
+        <form method="POST" 
+              action="{% if accion == 'nuevo' %}{{ url_for('universidad.crear') }}{% else %}{{ url_for('universidad.actualizar') }}{% endif %}">
+            
+            <div class="row mb-3">
+                {% if accion == 'editar' %}
+                <div class="col-md-2">
+                    <label for="id" class="form-label">ID</label>
+                    <input type="text" class="form-control" id="id" name="id" 
+                           value="{{ universidad_editar.id }}" readonly>
+                </div>
+                {% endif %}
+
+                <div class="col-md-5">
+                    <label for="nombre" class="form-label">Nombre de la Universidad</label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="nombre" 
+                           name="nombre" 
+                           value="{{ universidad_editar.nombre if universidad_editar else '' }}" 
+                           required>
+                </div>
+
+                <div class="col-md-5">
+                    <label for="ubicacion" class="form-label">Ubicación (Ciudad/Sede)</label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="ubicacion" 
+                           name="ubicacion" 
+                           value="{{ universidad_editar.ubicacion if universidad_editar else '' }}" 
+                           required>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">Guardar</button>
+                <a href="{{ url_for('universidad.index') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <strong>Lista de Universidades</strong>
+        <span class="badge bg-secondary ms-2">{{ universidades | length }}</span>
+    </div>
+
+    <div class="card-body p-0">
+        {% if universidades %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Ubicación</th>
+                        <th style="width: 180px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for uni in universidades %}
+                    <tr>
+                        <td>{{ uni.id }}</td>
+                        <td>{{ uni.nombre }}</td>
+                        <td>{{ uni.ubicacion }}</td>
+                        <td>
+                            <a href="{{ url_for('universidad.index', accion='editar', id=uni.id) }}" 
+                               class="btn btn-warning btn-sm me-1">
+                                Editar
+                            </a>
+
+                            <form method="POST" 
+                                  action="{{ url_for('universidad.eliminar') }}" 
+                                  style="display: inline;" 
+                                  onsubmit="return confirm('¿Seguro que desea eliminar la universidad {{ uni.nombre }}?')">
+                                <input type="hidden" name="id" value="{{ uni.id }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center p-4 text-muted">
+            <p>No se encontraron universidades registradas.</p>
+            <p>Asegúrate de que el Backend esté activo.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
