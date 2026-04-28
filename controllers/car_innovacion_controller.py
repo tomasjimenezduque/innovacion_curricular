@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query, Response, status
 from services.fabrica_repositorios import crear_servicio_car_innovacion
 
-router = APIRouter(prefix="/api/car_innovacion", tags=["CarInnovacion"])
+router = APIRouter(prefix="/car_innovacion", tags=["CarInnovacion"])
 
 @router.get("/")
 async def listar(

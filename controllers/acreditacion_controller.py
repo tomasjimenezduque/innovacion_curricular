@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Query, Response, status
-from servicios.fabrica_repositorios import crear_servicio_acreditacion
+from services.fabrica_repositorios import crear_servicio_acreditacion
 
 # Nota: Para 'data: dict', en el futuro usaremos Pydantic Schemas
-router = APIRouter(prefix="/api/acreditacion", tags=["Acreditacion"])
+router = APIRouter(prefix="/acreditacion", tags=["Acreditacion"])
 
 @router.get("/")
 async def listar(

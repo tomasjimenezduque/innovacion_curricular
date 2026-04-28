@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query, Response, status
 from services.fabrica_repositorios import crear_servicio_registro_calificado
 
-router = APIRouter(prefix="/api/registro_calificado", tags=["RegistroCalificado"])
+router = APIRouter(prefix="/registro_calificado", tags=["RegistroCalificado"])
 
 @router.get("/")
 async def listar(

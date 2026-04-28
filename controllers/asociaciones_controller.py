@@ -1,92 +1,73 @@
 from fastapi import APIRouter, HTTPException, Query, Response, status
 from services.fabrica_repositorios import crear_servicio_asociaciones
+from models.asociaciones import (
+    t_rol_usuario, t_programa_ac, t_an_programa, 
+    t_programa_ci, t_programa_pe, t_enfoque_rc
+)
 
-router = APIRouter(prefix="/api/asociaciones", tags=["Asociaciones"])
+router = APIRouter(prefix="/asociaciones", tags=["Asociaciones"])
 
-@router.get("/")
-async def listar(
-    esquema: str | None = Query(default=None),
-    limite: int | None = Query(default=None)
-):
-    try:
-        servicio = crear_servicio_asociaciones()
-        # Ajuste: El repositorio ahora usa 'obtener_todos'
-        filas = await servicio.obtener_todos(esquema, limite)
-
-        if not filas:
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-        return {
-            "tabla": "asociaciones",
-            "total": len(filas),
-            "datos": filas
-        }
-    except Exception as ex:
-        raise HTTPException(status_code=500, detail=str(ex))
+# Diccionario para mapear el nombre que viene del cliente con el objeto Table de SQLAlchemy
+MAPA_TABLAS = {
+    "rol_usuario": t_rol_usuario,
+    "programa_area": t_programa_ac,
+    "programa_normativo": t_an_programa,
+    "programa_innovacion": t_programa_ci,
+    "programa_estrategia": t_programa_pe,
+    "enfoque_registro": t_enfoque_rc
+}
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def crear(
-    data: dict, # Usamos dict para flexibilidad y compatibilidad
-    esquema: str | None = Query(default=None)
+async def crear_asociacion(
+    nombre_tabla: str, # Ejemplo: "rol_usuario"
+    data: dict
 ):
+    """
+    Crea una relación en una tabla intermedia.
+    data debe contener las llaves necesarias (ej: {"usuario_id": 1, "rol_id": 2})
+    """
     try:
+        if nombre_tabla not in MAPA_TABLAS:
+            raise HTTPException(status_code=400, detail="La tabla de asociación no es válida")
+
         servicio = crear_servicio_asociaciones()
-        # Ajuste: 'guardar' devuelve la tupla (bool, mensaje)
-        exito, mensaje = await servicio.guardar(data, esquema)
+        
+        # Usamos el método de inserción que definimos en el repo
+        # Nota: Si definiste métodos específicos (asociar_rol_usuario), úsalos.
+        # Aquí usaré una lógica genérica basada en tu nuevo repo:
+        exito, mensaje = await servicio.asociar_generico(MAPA_TABLAS[nombre_tabla], data)
 
         if exito:
-            return {
-                "mensaje": mensaje,
-                "datos": data
-            }
+            return {"mensaje": mensaje, "datos": data}
         
         raise HTTPException(status_code=400, detail=mensaje)
     except Exception as ex:
         raise HTTPException(status_code=500, detail=str(ex))
 
-@router.put("/{id}")
-async def actualizar(
-    id: int,
-    data: dict,
-    esquema: str | None = Query(default=None)
+@router.delete("/")
+async def eliminar_asociacion(
+    nombre_tabla: str,
+    id_1: int,
+    id_2: int,
+    nombre_col_1: str,
+    nombre_col_2: str
 ):
+    """
+    Elimina una relación específica. 
+    Ejemplo: /asociaciones/?nombre_tabla=rol_usuario&id_1=1&id_2=2&nombre_col_1=usuario_id&nombre_col_2=rol_id
+    """
     try:
+        if nombre_tabla not in MAPA_TABLAS:
+            raise HTTPException(status_code=400, detail="Tabla no válida")
+
         servicio = crear_servicio_asociaciones()
-        # Ajuste: 'actualizar' devuelve (bool, mensaje) en lugar de filas afectadas
-        exito, mensaje = await servicio.actualizar(id, data, esquema)
-
-        if exito:
-            return {
-                "mensaje": mensaje,
-                "datos_actualizados": data
-            }
+        filtros = {nombre_col_1: id_1, nombre_col_2: id_2}
         
-        raise HTTPException(status_code=404, detail=mensaje)
-    except HTTPException:
-        raise
-    except Exception as ex:
-        raise HTTPException(status_code=500, detail=str(ex))
-
-@router.delete("/{id}")
-async def eliminar(
-    id: int,
-    esquema: str | None = Query(default=None)
-):
-    try:
-        servicio = crear_servicio_asociaciones()
-        
-        # Primero buscamos la entidad (necesaria para el método eliminar del repo)
-        entidad = await servicio.obtener_por_id(id, esquema)
-        if not entidad:
-            raise HTTPException(status_code=404, detail="Registro no encontrado")
-
-        exito, mensaje = await servicio.eliminar(entidad, esquema)
+        exito, mensaje = await servicio.eliminar_asociacion(MAPA_TABLAS[nombre_tabla], filtros)
 
         if exito:
             return {"mensaje": mensaje}
             
         raise HTTPException(status_code=400, detail=mensaje)
-    except HTTPException:
-        raise
     except Exception as ex:
         raise HTTPException(status_code=500, detail=str(ex))

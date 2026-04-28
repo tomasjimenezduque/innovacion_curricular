@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query, Response, status
 from services.fabrica_repositorios import crear_servicio_enfoque
 
-router = APIRouter(prefix="/api/enfoque", tags=["Enfoque"])
+router = APIRouter(prefix="/enfoque", tags=["Enfoque"])
 
 @router.get("/")
 async def listar(

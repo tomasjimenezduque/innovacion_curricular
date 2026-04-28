@@ -44,7 +44,7 @@ from config import SECRET_KEY
 # La necesitamos para que Flask pueda firmar las cookies de sesión.
 
 from routes.home import home_bp
-from routes.producto import producto_bp
+
 from routes.universidad import  universidad_bp
 # Importa los Blueprints (grupos de rutas).
 # home_bp     → maneja la página principal (/)
@@ -113,10 +113,6 @@ app.register_blueprint(home_bp)
 # Registra las rutas del home. Después de esta línea,
 # Flask sabe que cuando alguien visite "/" debe usar home_bp.
 
-app.register_blueprint(producto_bp)
-# Registra las rutas de producto. Después de esta línea,
-# Flask sabe que las URLs /producto, /producto/crear, etc.
-# deben usar producto_bp.
 #
 # PARA AGREGAR MÁS PÁGINAS EN EL FUTURO:
 # 1. Crea un nuevo archivo en routes/ (ej: routes/empresa.py)

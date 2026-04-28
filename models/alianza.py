@@ -17,5 +17,5 @@ class Alianza(Base):
     fecha_fin: Mapped[Optional[datetime.date]] = mapped_column(Date)
     docente: Mapped[Optional[int]] = mapped_column(Integer)
 
-    aliado_: Mapped['Aliado'] = relationship('Aliado', back_populates='alianza')
+    aliado_: Mapped["Aliado"] = relationship("Aliado", back_populates="alianzas")
     programa: Mapped['Programa'] = relationship('Programa', back_populates='alianza')

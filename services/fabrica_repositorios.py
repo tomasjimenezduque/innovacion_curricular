@@ -140,3 +140,8 @@ from repositories.usuario_repository import UsuarioRepository
 def crear_servicio_usuario():
     # Retornamos el repositorio inyectando la sesión de base de datos
     return UsuarioRepository(SessionLocal())
+
+from repositories.asociaciones_repository import AsociacionesRepository
+
+def crear_servicio_asociaciones():
+    return AsociacionesRepository(SessionLocal())

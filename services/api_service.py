@@ -14,7 +14,6 @@ class ApiService(IApiService):
 
         try:
             respuesta = requests.get(url, params=params)
-            # Si es 204 No Content, retornamos lista vacía
             if respuesta.status_code == 204:
                 return []
             datos = respuesta.json()
@@ -23,11 +22,25 @@ class ApiService(IApiService):
             print(f"[ERROR] Listar {tabla}: {e}")
             return []
 
-    # Se agrega **kwargs para capturar 'campos_encriptar' y otros parámetros extra
+    def get(self, tabla, valor_clave):
+        """
+        Obtiene un registro específico por su ID.
+        Fundamental para que 'universidad_editar' no sea None.
+        """
+        url = f"{self.base_url}/{tabla}/{valor_clave}"
+        try:
+            respuesta = requests.get(url)
+            if respuesta.status_code == 200:
+                # Retorna directamente el objeto del registro
+                return respuesta.json()
+            return None
+        except Exception as e:
+            print(f"[ERROR] Get {tabla}/{valor_clave}: {e}")
+            return None
+
     def crear(self, tabla, datos, esquema=None, **kwargs):
         url = f"{self.base_url}/{tabla}/"
         try:
-            # Aquí podrías procesar kwargs['campos_encriptar'] si fuera necesario
             respuesta = requests.post(url, json=datos)
             cuerpo = respuesta.json()
 
@@ -40,7 +53,6 @@ class ApiService(IApiService):
             return False, f"Error de conexión: {e}"
 
     def actualizar(self, tabla, clave_nombre, valor_clave, datos, **kwargs):
-        # Nota: Ajustado para usar valor_clave directamente en la URL
         url = f"{self.base_url}/{tabla}/{valor_clave}"
         try:
             respuesta = requests.put(url, json=datos)

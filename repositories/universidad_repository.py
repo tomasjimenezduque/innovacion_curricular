@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession # Cambio a sesión asíncrona
 from sqlalchemy.orm import selectinload
-from sqlalchemy import select, update
+from sqlalchemy import select, update, text
 from .abstracciones.i_repository import IRepository
 from models.universidad import Universidad
 
@@ -30,16 +30,19 @@ class UniversidadRepository(IRepository):
         result = await self.db.execute(stmt)
         return result.scalars().first()
 
-    async def guardar(self, entidad: Universidad, esquema: str = None):
+    async def guardar(self, datos: dict, esquema: str = None): # Recibimos dict
         try:
-            self.db.add(entidad)
-            # CORRECCIÓN: await en operaciones de escritura
+            # Convertimos el diccionario en una instancia del Modelo
+            nueva_universidad = Universidad(**datos) 
+        
+            self.db.add(nueva_universidad)
             await self.db.commit()
-            await self.db.refresh(entidad)
+            await self.db.refresh(nueva_universidad)
             return True, "Universidad guardada correctamente"
         except Exception as e:
-            # CORRECCIÓN: await en rollback
             await self.db.rollback()
+            # Esto te dirá en el log exactamente qué campo falla
+            print(f"DEBUG ERROR REPO: {str(e)}") 
             return False, f"Error: {str(e)}"
 
     async def actualizar(self, valor_id: int, datos: dict, esquema: str = None):
@@ -63,12 +66,17 @@ class UniversidadRepository(IRepository):
             await self.db.rollback()
             return False, f"Error al actualizar: {str(e)}"
 
-    async def eliminar(self, entidad: Universidad, esquema: str = None):
+    async def eliminar(self, id_u: int):
+        # Envolvemos el SQL en la función text()
+        sql = text("DELETE FROM universidad WHERE id = :id_val")
+    
         try:
-            # CORRECCIÓN: await en delete y commit
-            await self.db.delete(entidad)
-            await self.db.commit()
-            return True, "Universidad eliminada correctamente"
+        # Ejecutamos pasando el parámetro como un diccionario
+            await self.db.execute(sql, {"id_val": id_u})
+            await self.db.commit() # ¡No olvides el commit!
+        
+            return True, "Registro eliminado correctamente."
         except Exception as e:
-            await self.db.rollback()
-            return False, f"Error: {str(e)}"
+            await self.db.rollback() # Si falla, volvemos atrás
+            print(f"Error en SQL eliminar: {e}")
+            return False, str(e)

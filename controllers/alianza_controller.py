@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query, Response, status
 from services.fabrica_repositorios import crear_servicio_alianza
 
-router = APIRouter(prefix="/api/alianza", tags=["Alianza"])
+router = APIRouter(prefix="/alianza", tags=["Alianza"])
 
 @router.get("/")
 async def listar(

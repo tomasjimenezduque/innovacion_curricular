@@ -26,3 +26,12 @@ from .car_innovacion import CarInnovacion
 from .enfoque import Enfoque
 from .practica_estrategia import PracticaEstrategia
 from .rol import Rol
+
+__all__ = [
+    "Base", 
+    "Aliado", 
+    "Alianza",
+    "Universidad",
+    "Facultad",
+    "Programa"
+]

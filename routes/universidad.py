@@ -22,7 +22,7 @@ def index():
 
     universidad_editar = None
     if accion == "editar" and id_u:
-        universidad_editar = api.obtener("universidad", id_u)
+        universidad_editar = api.get("universidad", id_u)
 
     return render_template(
         "pages/universidad.html",
@@ -37,10 +37,13 @@ def index():
 # ═══════════════════════════════════════════════════════════════
 @universidad_bp.route("/universidad/crear", methods=["POST"])
 def crear():
+    # Debemos capturar los nombres EXACTOS que el HTML envía 
+    # y que el Modelo de SQLAlchemy espera.
     datos = {
+        "id": request.form.get("id"),
         "nombre": request.form.get("nombre"),
-        "ubicacion": request.form.get("ubicacion"), # Ejemplo de campo adicional
-        # Agrega aquí más campos según tu modelo de base de datos
+        "ciudad": request.form.get("ciudad"),  # CAMBIADO: Antes decía 'ubicacion'
+        "tipo": request.form.get("tipo")       # AGREGADO: Para que no vaya vacío
     }
     
     exito, mensaje = api.crear("universidad", datos)
@@ -50,25 +53,48 @@ def crear():
 # ═══════════════════════════════════════════════════════════════
 #  ACTUALIZAR — Enviar cambios a la API
 # ═══════════════════════════════════════════════════════════════
-@universidad_bp.route("/universidad/actualizar", methods=["POST"])
+# universidad_routes.py (en el proyecto FRONT/FLASK)
+
+@universidad_bp.route('/actualizar', methods=['POST'])
 def actualizar():
-    id_u = request.form.get("id")
+    # 1. Capturamos los datos del formulario
+    id_u = request.form.get('id')
     datos = {
-        "nombre": request.form.get("nombre"),
-        "ubicacion": request.form.get("ubicacion"),
+        "nombre": request.form.get('nombre'),
+        "ciudad": request.form.get('ciudad'),
+        "tipo": request.form.get('tipo')
     }
     
-    exito, mensaje = api.actualizar("universidad", id_u, datos)
-    flash(mensaje, "success" if exito else "danger")
-    return redirect(url_for("universidad.index"))
-
-# ═══════════════════════════════════════════════════════════════
-#  ELIMINAR — Borrar registro en la API
-# ═══════════════════════════════════════════════════════════════
-@universidad_bp.route("/universidad/eliminar", methods=["POST"])
-def eliminar():
-    id_u = request.form.get("id")
+    # 2. Llamamos al ApiService (el que me mostraste antes)
+    # Importante: Pasar 'valor_clave' como el ID
+    exito, mensaje = api.actualizar(
+        tabla="universidad", 
+        clave_nombre="id", 
+        valor_clave=id_u, 
+        datos=datos
+    )
     
-    exito, mensaje = api.eliminar("universidad", id_u)
-    flash(mensaje, "success" if exito else "danger")
-    return redirect(url_for("universidad.index"))
+    if exito:
+        flash("Universidad actualizada correctamente", "success")
+    else:
+        flash(f"Error al actualizar: {mensaje}", "danger")
+        
+    return redirect(url_for('universidad.index'))
+
+@universidad_bp.route('/eliminar', methods=['POST'])
+def eliminar():
+    id_u = request.form.get('id')
+    
+    # Llamamos al ApiService
+    exito, mensaje = api.eliminar(
+        tabla="universidad", 
+        clave_nombre="id", 
+        valor_clave=id_u
+    )
+    
+    if exito:
+        flash("Registro eliminado con éxito", "success")
+    else:
+        flash(f"Error al eliminar: {mensaje}", "danger")
+        
+    return redirect(url_for('universidad.index'))

@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, Query, Response, status
 from services.fabrica_repositorios import crear_servicio_aliado
+from models.aliado import Aliado
 
-router = APIRouter(prefix="/api/aliado", tags=["Aliado"])
+router = APIRouter(prefix="/aliado", tags=["Aliado"])
 
 @router.get("/")
 async def listar(
@@ -10,7 +11,6 @@ async def listar(
 ):
     try:
         servicio = crear_servicio_aliado()
-        # Ajuste: método 'obtener_todos' para consistencia
         filas = await servicio.obtener_todos(esquema, limite)
 
         if not filas:
@@ -25,35 +25,43 @@ async def listar(
         raise HTTPException(status_code=500, detail=str(ex))
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def crear(
-    data: dict, # Flexibilidad de dict para evitar conflictos con el modelo SQLAlchemy
-    esquema: str | None = Query(default=None)
-):
+async def crear(data: dict, esquema: str | None = Query(default=None)):
     try:
         servicio = crear_servicio_aliado()
-        # Ajuste: 'guardar' devuelve (bool, mensaje)
-        exito, mensaje = await servicio.guardar(data, esquema)
+        
+        # --- CORRECCIÓN CRUCIAL PARA EL NIT ---
+        # Si el NIT viene en los datos, lo forzamos a ser STRING 
+        # para que PostgreSQL no grite (expected str, got int)
+        if "nit" in data:
+            data["nit"] = str(data["nit"])
+        
+        # Convertimos el diccionario a objeto modelo con el NIT ya como String
+        nuevo_aliado = Aliado(**data) 
+        
+        exito, mensaje = await servicio.guardar(nuevo_aliado, esquema)
 
         if exito:
-            return {
-                "mensaje": mensaje,
-                "datos": data
-            }
+            return {"mensaje": mensaje, "datos": data}
         
         raise HTTPException(status_code=400, detail=mensaje)
     except Exception as ex:
+        print(f"❌ ERROR: {ex}")
         raise HTTPException(status_code=500, detail=str(ex))
-
-@router.put("/{id}")
+    
+@router.put("/{nit}") # Cambié 'id' por 'nit' para ser consistente con tu PK
 async def actualizar(
-    id: int,
+    nit: str, # El NIT es String
     data: dict,
     esquema: str | None = Query(default=None)
 ):
     try:
         servicio = crear_servicio_aliado()
-        # Ajuste: 'actualizar' devuelve (bool, mensaje)
-        exito, mensaje = await servicio.actualizar(id, data, esquema)
+        
+        # Aseguramos que si el nit viene en el body, también sea string
+        if "nit" in data:
+            data["nit"] = str(data["nit"])
+
+        exito, mensaje = await servicio.actualizar(nit, data, esquema)
 
         if exito:
             return {
@@ -67,16 +75,15 @@ async def actualizar(
     except Exception as ex:
         raise HTTPException(status_code=500, detail=str(ex))
 
-@router.delete("/{id}")
+@router.delete("/{nit}") # Cambié 'id' por 'nit'
 async def eliminar(
-    id: int,
+    nit: str,
     esquema: str | None = Query(default=None)
 ):
     try:
         servicio = crear_servicio_aliado()
         
-        # Primero buscamos la entidad (necesario para el método eliminar del repo)
-        entidad = await servicio.obtener_por_id(id, esquema)
+        entidad = await servicio.obtener_por_id(nit, esquema)
         if not entidad:
             raise HTTPException(status_code=404, detail="Registro no encontrado")
 

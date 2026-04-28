@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query, Response, status
 from services.fabrica_repositorios import crear_servicio_aa_rc
 
-router = APIRouter(prefix="/api/aa_rc", tags=["AaRc"])
+router = APIRouter(prefix="/aa_rc", tags=["AaRc"])
 
 @router.get("/", response_model=None)
 async def listar(

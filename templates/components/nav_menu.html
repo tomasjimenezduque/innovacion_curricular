@@ -191,5 +191,11 @@
                <span class="bi-list-nested-nav-menu"></span>
                Usuarios
           </a>
+          <a class="nav-link nav-item 
+               {% if '/universidad' in request.path %}active{% endif %}" 
+               href="{{ url_for('universidad.index') }}">
+               <span class="bi-list-nested-nav-menu"></span>
+               Universidades
+          </a>
           </nav>
      </div>
