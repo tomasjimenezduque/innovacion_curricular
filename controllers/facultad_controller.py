@@ -10,11 +10,11 @@ async def listar(
 ):
     try:
         servicio = crear_servicio_facultad()
-        # Ajuste: Sincronización con el método del repositorio
         filas = await servicio.obtener_todos(esquema, limite)
 
         if not filas:
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
+            # Es mejor devolver lista vacía que un 204 para que el Front no rompa al iterar
+            return {"tabla": "facultad", "total": 0, "datos": []}
 
         return {
             "tabla": "facultad",
@@ -24,14 +24,33 @@ async def listar(
     except Exception as ex:
         raise HTTPException(status_code=500, detail=str(ex))
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
-async def crear(
-    data: dict, # Evitamos conflictos de validación con el modelo SQLAlchemy
+# --- EL ENDPOINT QUE FALTABA Y CAUSABA EL 405 ---
+@router.get("/{id}")
+async def obtener_por_id(
+    id: int,
     esquema: str | None = Query(default=None)
 ):
     try:
         servicio = crear_servicio_facultad()
-        # Ajuste: Interpretamos la tupla (exito, mensaje)
+        entidad = await servicio.obtener_por_id(id, esquema)
+        
+        if not entidad:
+            raise HTTPException(status_code=404, detail="Facultad no encontrada")
+            
+        return entidad
+    except HTTPException:
+        raise
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+# -----------------------------------------------
+
+@router.post("/", status_code=status.HTTP_201_CREATED)
+async def crear(
+    data: dict, 
+    esquema: str | None = Query(default=None)
+):
+    try:
+        servicio = crear_servicio_facultad()
         exito, mensaje = await servicio.guardar(data, esquema)
 
         if exito:
@@ -51,7 +70,6 @@ async def actualizar(
 ):
     try:
         servicio = crear_servicio_facultad()
-        # Ajuste: Cambio de lógica de 'filas' a booleano de éxito
         exito, mensaje = await servicio.actualizar(id, data, esquema)
 
         if exito:
@@ -74,7 +92,6 @@ async def eliminar(
     try:
         servicio = crear_servicio_facultad()
         
-        # Primero buscamos la entidad para pasar el objeto al repositorio
         entidad = await servicio.obtener_por_id(id, esquema)
         if not entidad:
             raise HTTPException(status_code=404, detail="Registro no encontrado")
@@ -84,7 +101,6 @@ async def eliminar(
         if exito:
             return {"mensaje": mensaje}
             
-        # Si hay dependencias, el mensaje del repo explicará por qué falló
         raise HTTPException(status_code=400, detail=mensaje)
     except HTTPException:
         raise

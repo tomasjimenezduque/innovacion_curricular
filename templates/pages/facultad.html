@@ -1,37 +1,103 @@
 {% extends "layout/base.html" %}
+
 {% block contenido %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between">
-        <h6 class="m-0 font-weight-bold text-primary">Listado de Facultades</h6>
-        <a href="{{ url_for('facultad.crear') }}" class="btn btn-primary btn-sm">+ Nueva Facultad</a>
+<div class="container-fluid">
+
+    <!-- 1. SECCIÓN DE FORMULARIO (Se muestra si accion es 'nuevo' o 'editar') -->
+    {% if accion %}
+    <div class="card shadow mb-4 border-left-primary">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {{ 'Editar Facultad' if accion == 'editar' else 'Nueva Facultad' }}
+            </h6>
+        </div>
+        <div class="card-body">
+            <!-- Corregido: Las rutas ahora apuntan a las funciones específicas del route -->
+            <form action="{{ url_for('facultad.crear') if accion != 'editar' else url_for('facultad.editar', id=facultad_editar.id) }}" method="POST">
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label>Nombre de la Facultad</label>
+                        <input type="text" name="nombre" class="form-control" value="{{ facultad_editar.nombre if facultad_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label>Tipo</label>
+                        <select name="tipo" class="form-control">
+                            <option value="Pública" {{ 'selected' if facultad_editar and facultad_editar.tipo == 'Pública' }}>Pública</option>
+                            <option value="Privada" {{ 'selected' if facultad_editar and facultad_editar.tipo == 'Privada' }}>Privada</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label>Fecha de Fundación</label>
+                        <!-- Se asume que fecha_fun viene en formato YYYY-MM-DD para el input date -->
+                        <input type="date" name="fecha_fun" class="form-control" value="{{ facultad_editar.fecha_fun if facultad_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label>Universidad (ID)</label>
+                        <!-- Cambiado a input numérico o texto según tu API -->
+                        <input type="number" name="universidad" class="form-control" value="{{ facultad_editar.universidad if facultad_editar else '' }}" placeholder="ID de Universidad" required>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-success btn-sm">Guardar Datos</button>
+                    <a href="{{ url_for('facultad.index') }}" class="btn btn-secondary btn-sm">Cancelar</a>
+                </div>
+            </form>
+        </div>
     </div>
-    <div class="card-body">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Tipo</th>
-                    <th>Fundación</th>
-                    <th>Uni ID</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for f in facultades %}
-                <tr>
-                    <td>{{ f.id }}</td>
-                    <td>{{ f.nombre }}</td>
-                    <td>{{ f.tipo }}</td>
-                    <td>{{ f.fecha_fun }}</td>
-                    <td>{{ f.universidad }}</td>
-                    <td>
-                        <button class="btn btn-outline-secondary btn-sm">Editar</button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    {% endif %}
+
+    <!-- 2. LISTADO DE FACULTADES -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Listado de Facultades</h6>
+            <!-- Botón para mostrar el formulario de creación -->
+            <a href="{{ url_for('facultad.index', accion='nuevo') }}" class="btn btn-primary btn-sm">+ Nueva Facultad</a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Fundación</th>
+                            <th>Uni ID</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in facultades %}
+                        <tr>
+                            <td>{{ f.id }}</td>
+                            <td><strong>{{ f.nombre }}</strong></td>
+                            <td>{{ f.tipo }}</td>
+                            <td>{{ f.fecha_fun }}</td>
+                            <td><span class="badge badge-light"># {{ f.universidad }}</span></td>
+                            <td class="d-flex">
+                                <!-- Botón Editar: Carga la misma página pero con parámetros para llenar el form -->
+                                <a href="{{ url_for('facultad.index', accion='editar', id=f.id) }}" 
+                                   class="btn btn-outline-info btn-sm mr-2">
+                                   <i class="fas fa-edit"></i>
+                                </a>
+
+                                <!-- Botón Eliminar -->
+                                <form action="{{ url_for('facultad.eliminar', id=f.id) }}" method="POST" 
+                                      onsubmit="return confirm('¿Está seguro de eliminar esta facultad?');">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" class="text-center">No hay facultades registradas</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

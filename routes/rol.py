@@ -1,32 +1,90 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-import requests
+from services import ApiService  # <--- Importación idéntica a Universidad
 
-rol_bp = Blueprint('rol', __name__)
+# ─── Crear el Blueprint para Rol ───────────────────────────
+rol_bp = Blueprint("rol", __name__)
+api = ApiService() # <--- Instancia de la clase
 
-API_URL = "http://127.0.0.1:8000/api/rol"
-
-@rol_bp.route('/')
+# ═══════════════════════════════════════════════════════════════
+#  RUTA PRINCIPAL — Listar + mostrar formularios
+# ═══════════════════════════════════════════════════════════════
+@rol_bp.route("/rol")
 def index():
-    try:
-        response = requests.get(API_URL)
-        datos = response.json().get('datos', []) if response.status_code == 200 else []
-        return render_template('pages/rol.html', roles=datos)
-    except Exception as e:
-        print(f"Error Rol: {e}")
-        return render_template('pages/rol.html', roles=[])
+    limite = request.args.get("limite")
+    accion = request.args.get("accion") # "nuevo", "editar" o None
+    id_r = request.args.get("id")
 
-@rol_bp.route('/crear', methods=['GET', 'POST'])
+    roles = api.listar("rol", limite=limite)
+
+    rol_editar = None
+    if accion == "editar" and id_r:
+        rol_editar = api.get("rol", id_r)
+
+    return render_template(
+        "pages/rol.html",
+        roles=roles,
+        accion=accion,
+        rol_editar=rol_editar,
+        limite=limite
+    )
+
+# ═══════════════════════════════════════════════════════════════
+#  CREAR — Recibir formulario y enviar a la API
+# ═══════════════════════════════════════════════════════════════
+@rol_bp.route("/rol/crear", methods=["POST"])
 def crear():
-    if request.method == 'POST':
-        nuevo_rol = {
-            "nombre": request.form.get('nombre'),
-            "descripcion": request.form.get('descripcion'),
-            "activo": True if request.form.get('activo') else False
-        }
-        response = requests.post(API_URL, json=nuevo_rol)
-        if response.status_code == 201:
-            flash("Rol creado exitosamente", "success")
-            return redirect(url_for('rol.index'))
-        flash("Error al crear el rol", "danger")
+    datos = {
+        "nombre": request.form.get("nombre"),
+        "descripcion": request.form.get("descripcion"),
+        "activo": 'activo' in request.form  # Maneja el checkbox
+    }
     
-    return render_template('pages/crear_rol.html')
+    exito, mensaje = api.crear("rol", datos)
+    flash(mensaje, "success" if exito else "danger")
+    return redirect(url_for("rol.index"))
+
+# ═══════════════════════════════════════════════════════════════
+#  ACTUALIZAR — Enviar cambios a la API
+# ═══════════════════════════════════════════════════════════════
+@rol_bp.route('/rol/actualizar', methods=['POST'])
+def actualizar():
+    id_r = request.form.get('id')
+    datos = {
+        "nombre": request.form.get('nombre'),
+        "descripcion": request.form.get('descripcion'),
+        "activo": 'activo' in request.form
+    }
+    
+    exito, mensaje = api.actualizar(
+        tabla="rol", 
+        clave_nombre="id", 
+        valor_clave=id_r, 
+        datos=datos
+    )
+    
+    if exito:
+        flash("Rol actualizado correctamente", "success")
+    else:
+        flash(f"Error al actualizar: {mensaje}", "danger")
+        
+    return redirect(url_for('rol.index'))
+
+# ═══════════════════════════════════════════════════════════════
+#  ELIMINAR
+# ═══════════════════════════════════════════════════════════════
+@rol_bp.route('/rol/eliminar', methods=['POST'])
+def eliminar():
+    id_r = request.form.get('id')
+    
+    exito, mensaje = api.eliminar(
+        tabla="rol", 
+        clave_nombre="id", 
+        valor_clave=id_r
+    )
+    
+    if exito:
+        flash("Rol eliminado con éxito", "success")
+    else:
+        flash(f"Error al eliminar: {mensaje}", "danger")
+        
+    return redirect(url_for('rol.index'))

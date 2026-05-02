@@ -10,7 +10,7 @@ class Facultad(Base):
         ForeignKeyConstraint(['universidad'], ['universidad.id'], name='facultad_universidad_fkey'),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     nombre: Mapped[str] = mapped_column(String(60), nullable=False)
     tipo: Mapped[str] = mapped_column(String(45), nullable=False)
     fecha_fun: Mapped[datetime.date] = mapped_column(Date, nullable=False)
