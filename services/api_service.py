@@ -3,24 +3,20 @@ import logging
 from config import API_BASE_URL
 from services.abstracciones.i_api_service import IApiService
 
-# Configuración de logs para depuración
+# Configuración de logs
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class ApiService(IApiService):
     def __init__(self):
-        # Aseguramos que la base_url no termine en / para manejarlo manualmente
+        # Aseguramos que la base_url sea limpia
         self.base_url = f"{API_BASE_URL}/api".rstrip('/')
 
     def _construir_url(self, tabla, valor_id=None):
-        """
-        Construye la URL de forma limpia. 
-        Si hay valor_id: /api/tabla/id
-        Si no: /api/tabla/
-        """
+        """Construye la URL siguiendo el estándar REST."""
         recurso = tabla.strip('/')
         if valor_id:
-            # Importante: No ponemos / al final si hay un ID (estándar REST)
+            # Importante: eliminamos espacios o slashes accidentales del ID
             return f"{self.base_url}/{recurso}/{str(valor_id).strip('/')}"
         return f"{self.base_url}/{recurso}/"
 
@@ -28,18 +24,19 @@ class ApiService(IApiService):
         url = self._construir_url(tabla)
         params = {k: v for k, v in {"limite": limite, "esquema": esquema}.items() if v}
         try:
+            # Usar un timeout es vital para no dejar colgada la app de Flask/FastAPI
             r = requests.get(url, params=params, timeout=5)
-            if r.status_code == 204: return []
+            if r.status_code == 204: 
+                return []
             r.raise_for_status()
             datos = r.json()
-            # Retorna la lista de 'datos' o el json directo si es una lista
+            # Si el API devuelve el formato {"datos": [...]}, lo extraemos
             return datos if isinstance(datos, list) else datos.get("datos", [])
         except Exception as e:
-            logger.error(f"Error al listar {tabla}: {e}")
+            logger.error(f"❌ Error al listar {tabla} en {url}: {e}")
             return []
 
     def get(self, tabla, valor_id):
-        """Recupera un solo registro por su ID."""
         if not valor_id: return None
         url = self._construir_url(tabla, valor_id)
         try:
@@ -48,44 +45,63 @@ class ApiService(IApiService):
                 return r.json()
             return None
         except Exception as e:
-            logger.error(f"Error en GET {tabla}/{valor_id}: {e}")
+            logger.error(f"❌ Error en GET {url}: {e}")
             return None
 
     def crear(self, tabla: str, datos: dict, esquema: str = None):
         url = self._construir_url(tabla)
         try:
             r = requests.post(url, json=datos, timeout=5)
-            # Manejamos posibles errores del API (400, 500, etc)
-            respuesta = r.json() if r.status_code in (200, 201) else {"mensaje": r.text}
-            return r.status_code in (200, 201), respuesta.get("mensaje", "Registro creado.")
+            # Intentar obtener mensaje de error del API si falla
+            try:
+                res_json = r.json()
+                msg = res_json.get("mensaje") or res_json.get("detail") or "Operación realizada"
+            except:
+                msg = r.text or "Error desconocido"
+                
+            return r.status_code in (200, 201), msg
         except Exception as e:
             return False, f"Error de conexión: {str(e)}"
 
     def actualizar(self, tabla, clave_nombre, valor_id, datos, **kwargs):
         """
-        En REST, el ID va en la URL. 
-        'clave_nombre' se mantiene por compatibilidad con la interfaz.
+        RESTful Update: PUT /api/tabla/valor_id
         """
         url = self._construir_url(tabla, valor_id)
         try:
             r = requests.put(url, json=datos, timeout=5)
-            if r.status_code == 200:
-                return True, r.json().get("mensaje", "Actualización exitosa.")
-            # Si da 404 o 405, el mensaje de error vendrá del API
-            msg = r.json().get("detail", "Error al actualizar") if r.status_code != 500 else "Error interno del servidor"
-            return False, msg
-        except Exception as e:
-            return False, str(e)
+            try:
+                res_json = r.json()
+                # Buscamos 'mensaje' o 'detail' (estándar de FastAPI)
+                msg = res_json.get("mensaje") or res_json.get("detail") or "Actualización exitosa"
+            except:
+                msg = "Error al procesar respuesta del servidor"
 
-    def eliminar(self, recurso, nombre_clave, valor_id):
+            return r.status_code == 200, msg
+        except Exception as e:
+            return False, f"Fallo de red: {str(e)}"
+
+    def eliminar(self, recurso, valor_id, nombre_clave=None):
+        """
+        RESTful Delete: DELETE /api/recurso/valor_id
+        """
         url = self._construir_url(recurso, valor_id)
         try:
             r = requests.delete(url, timeout=5)
-            return r.status_code in (200, 204), "Eliminado correctamente."
+            if r.status_code in (200, 204):
+                return True, "Registro eliminado correctamente."
+            
+            # Intentar capturar por qué no se pudo eliminar (ej: integridad referencial)
+            try:
+                msg = r.json().get("detail", "No se pudo eliminar.")
+            except:
+                msg = f"Error {r.status_code} en el servidor."
+                
+            return False, msg
         except Exception as e:
-            return False, str(e)
+            return False, f"Error de conexión: {str(e)}"
 
-    # --- Métodos Compuestos ---
+    # --- Métodos Compuestos (Mantener igual o ajustar según necesidad) ---
 
     def eliminar_compuesto(self, tabla: str, id_1: int, id_2: int, esquema: str = None):
         url = f"{self.base_url}/{tabla.strip('/')}/{id_1}/{id_2}"

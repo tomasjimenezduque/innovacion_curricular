@@ -107,14 +107,12 @@ def eliminar():
     id_u = request.form.get('id')
     
     if not id_u:
-        flash("Error: No se pudo identificar el usuario a eliminar", "danger")
+        flash("Error: ID no encontrado", "danger")
         return redirect(url_for('usuario.index'))
 
-    exito, mensaje = api.eliminar(
-        tabla=TABLA, 
-        clave_nombre=CLAVE, 
-        valor_clave=id_u
-    )
+    # Pasas: recurso, nombre_clave, valor_id
+    # Nota: Los pasamos de forma posicional para evitar líos de nombres
+    exito, mensaje = api.eliminar("usuario", id_u, "id") 
     
     flash(mensaje, 'success' if exito else 'danger')
     return redirect(url_for('usuario.index'))
