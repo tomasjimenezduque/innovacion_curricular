@@ -28,18 +28,24 @@ class UsuarioRepository(IRepository):
         result = await self.db.execute(stmt)
         return result.scalars().first()
 
-    async def guardar(self, entidad: Usuario, esquema: str = None):
+    async def guardar(self, datos, esquema: str = None):
         try:
+            # Si llega un dict (desde el router), lo convertimos a objeto Usuario
+            if isinstance(datos, dict):
+                datos.pop('id', None)  # id es autoincremental
+                entidad = Usuario(**datos)
+            else:
+                entidad = datos  # ya es un objeto Usuario
+
             self.db.add(entidad)
-            # CORRECCIÓN: await en operaciones de escritura
             await self.db.commit()
             await self.db.refresh(entidad)
             return True, "Usuario guardado correctamente"
         except Exception as e:
-            # CORRECCIÓN: await en rollback
             await self.db.rollback()
+            print(f"DEBUG ERROR guardar usuario: {str(e)}")
             return False, f"Error: {str(e)}"
-
+        
     async def actualizar(self, valor_id: int, datos: dict, esquema: str = None):
         """
         Actualiza los datos del usuario (nombre, correo, estado).

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from services.api_service import ApiService
+import bcrypt  # agregar este import arriba
 
 # CAMBIO CLAVE: El nombre de la variable debe ser 'usuario_bp' para que app.py lo reconozca
 usuario_bp = Blueprint('usuario', __name__)
@@ -34,19 +35,22 @@ def index():
 
 @usuario_bp.route('/usuario/crear', methods=['POST'])
 def crear():
+    password_plano = request.form.get('password')
+    password_hash = bcrypt.hashpw(password_plano.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
     datos = {
         'username':        request.form.get('username'),
         'email':           request.form.get('email'),
-        'password':        request.form.get('password'),
+        'password':        password_hash,  # ya encriptado
         'nombre_completo': request.form.get('nombre_completo'),
         'activo':          'activo' in request.form
     }
     
-    # Se usa el parámetro campos_encriptar que ya soporta tu ApiService con **kwargs
-    exito, mensaje = api.crear(TABLA, datos, campos_encriptar="password")
+    exito, mensaje = api.crear(TABLA, datos)  # sin kwargs
     
     flash(mensaje, 'success' if exito else 'danger')
     return redirect(url_for('usuario.index'))
+
 
 @usuario_bp.route('/usuario/actualizar', methods=['POST'])
 def actualizar():
@@ -59,11 +63,12 @@ def actualizar():
     }
     
     password_nuevo = request.form.get('password')
-    if password_nuevo:
-        datos['password'] = password_nuevo
+    if password_nuevo:  # solo encriptar si viene uno nuevo
+        datos['password'] = bcrypt.hashpw(
+            password_nuevo.encode('utf-8'), bcrypt.gensalt()
+        ).decode('utf-8')
 
-    # Importante: Pasar CLAVE y valor_id por separado como pide tu ApiService
-    exito, mensaje = api.actualizar(TABLA, CLAVE, valor_id, datos, campos_encriptar="password")
+    exito, mensaje = api.actualizar(TABLA, CLAVE, valor_id, datos)  # sin kwargs
     
     flash(mensaje, 'success' if exito else 'danger')
     return redirect(url_for('usuario.index'))

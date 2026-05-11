@@ -113,87 +113,31 @@ def crear():
 
 
 @universidad_bp.route('/actualizar', methods=['POST'])
-
 def actualizar():
+    data = request.form.to_dict()
+    id_uni = data.pop('id', None)
+    
+    if not id_uni:
+        flash("Error: No se encontró el ID de la universidad", "danger")
+        return redirect(url_for('universidad.index'))
 
-    # 1. Capturamos los datos del formulario
-
-    id_u = request.form.get('id')
-
-    datos = {
-
-        "nombre": request.form.get('nombre'),
-
-        "ciudad": request.form.get('ciudad'),
-
-        "tipo": request.form.get('tipo')
-
-    }
-
-   
-
-    # 2. Llamamos al ApiService (el que me mostraste antes)
-
-    # Importante: Pasar 'valor_clave' como el ID
-
-    exito, mensaje = api.actualizar(
-
-        tabla="universidad",
-
-        clave_nombre="id",
-
-        valor_clave=id_u,
-
-        datos=datos
-
-    )
-
-   
-
-    if exito:
-
-        flash("Universidad actualizada correctamente", "success")
-
-    else:
-
-        flash(f"Error al actualizar: {mensaje}", "danger")
-
-       
-
+    # CORRECCIÓN: misma firma que facultad → (tabla, clave, id, datos)
+    exito, mensaje = api.actualizar("universidad", "id", id_uni, data)
+    
+    flash(mensaje, 'success' if exito else 'danger')
     return redirect(url_for('universidad.index'))
 
 
-
 @universidad_bp.route('/eliminar', methods=['POST'])
-
 def eliminar():
+    id_uni = request.form.get('id')
+    
+    if not id_uni:
+        flash("Error: No se pudo encontrar el ID de la universidad", "danger")
+        return redirect(url_for('universidad.index'))
 
-    id_u = request.form.get('id')
-
-   
-
-    # Llamamos al ApiService
-
-    exito, mensaje = api.eliminar(
-
-        tabla="universidad",
-
-        clave_nombre="id",
-
-        valor_clave=id_u
-
-    )
-
-   
-
-    if exito:
-
-        flash("Registro eliminado con éxito", "success")
-
-    else:
-
-        flash(f"Error al eliminar: {mensaje}", "danger")
-
-       
-
+    # CORRECCIÓN: misma firma que facultad → (tabla, clave, id)
+    exito, mensaje = api.eliminar("universidad", "id", id_uni)
+    
+    flash(mensaje, 'success' if exito else 'danger')
     return redirect(url_for('universidad.index'))

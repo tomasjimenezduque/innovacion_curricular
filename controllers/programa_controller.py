@@ -24,6 +24,22 @@ async def listar(
     except Exception as ex:
         raise HTTPException(status_code=500, detail=str(ex))
 
+@router.get("/{id}")
+async def obtener_por_id(id: int, esquema: str | None = Query(default=None)):
+    try:
+        servicio = crear_servicio_programa()
+        entidad = await servicio.obtener_por_id(id, esquema)
+        if not entidad:
+            raise HTTPException(status_code=404, detail="Programa no encontrado")
+        # Serializamos manualmente igual que facultad
+        d = entidad.__dict__.copy()
+        d.pop('_sa_instance_state', None)
+        return d
+    except HTTPException:
+        raise
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def crear(
     data: dict, # Recibimos dict para evitar conflictos con el modelo de base de datos

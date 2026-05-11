@@ -4,39 +4,128 @@
 {% block encabezado %}Gestión de Aliados{% endblock %}
 
 {% block contenido %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Gestión de Aliados</h6>
-        <a href="{{ url_for('aliado.crear') }}" class="btn btn-primary btn-sm">+ Nuevo Aliado</a>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Lista de Aliados</h3>
+        {% if not accion %}
+            <a href="{{ url_for('aliado.index', accion='nuevo') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Aliado
+            </a>
+        {% endif %}
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>NIT</th>
-                        <th>Razón Social</th>
-                        <th>Contacto</th>
-                        <th>Correo</th>
-                        <th>Ciudad</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for a in aliados %}
-                    <tr>
-                        <td>{{ a.nit }}</td>
-                        <td>{{ a.razon_social }}</td>
-                        <td>{{ a.nombre_contacto }}</td>
-                        <td>{{ a.correo }}</td>
-                        <td>{{ a.ciudad }}</td>
-                        <td>
-                            <button class="btn btn-sm btn-info">Editar</button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    {% if accion %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {{ "Modificar Aliado" if accion == 'editar' else "Registrar Nuevo Aliado" }}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('aliado.actualizar') if accion == 'editar' else url_for('aliado.crear') }}">
+                {% if accion == 'editar' %}
+                    <input type="hidden" name="nit" value="{{ aliado_editar.nit }}">
+                {% endif %}
+
+                <div class="row">
+                    {% if accion != 'editar' %}
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">NIT</label>
+                        <input type="text" name="nit" class="form-control" 
+                               placeholder="Ej: 900123456-1" required>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-{% if accion == 'editar' %}4{% else %}3{% endif %} mb-3">
+                        <label class="form-label font-weight-bold">Razón Social</label>
+                        <input type="text" name="razon_social" class="form-control"
+                               value="{{ aliado_editar.razon_social if aliado_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Nombre Contacto</label>
+                        <input type="text" name="nombre_contacto" class="form-control"
+                               value="{{ aliado_editar.nombre_contacto if aliado_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Correo</label>
+                        <input type="email" name="correo" class="form-control"
+                               value="{{ aliado_editar.correo if aliado_editar else '' }}" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Teléfono</label>
+                        <input type="text" name="telefono" class="form-control"
+                               value="{{ aliado_editar.telefono if aliado_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Ciudad</label>
+                        <input type="text" name="ciudad" class="form-control"
+                               value="{{ aliado_editar.ciudad if aliado_editar else '' }}" required>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <a href="{{ url_for('aliado.index') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Registros en Base de Datos</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>NIT</th>
+                            <th>Razón Social</th>
+                            <th>Contacto</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Ciudad</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in aliados %}
+                        <tr>
+                            <td>{{ a.nit }}</td>
+                            <td><strong>{{ a.razon_social }}</strong></td>
+                            <td>{{ a.nombre_contacto }}</td>
+                            <td>{{ a.correo }}</td>
+                            <td>{{ a.telefono }}</td>
+                            <td>{{ a.ciudad }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('aliado.index', accion='editar', id=a.nit) }}"
+                                       class="btn btn-sm btn-warning">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('aliado.eliminar') }}" style="display:inline;">
+                                        <input type="hidden" name="nit" value="{{ a.nit }}">
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('¿Eliminar {{ a.razon_social }}?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No hay aliados registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

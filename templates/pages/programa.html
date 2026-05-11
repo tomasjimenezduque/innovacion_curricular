@@ -1,38 +1,162 @@
 {% extends "layout/base.html" %}
+
+{% block titulo %}Programas{% endblock %}
+{% block encabezado %}Gestión de Programas Académicos{% endblock %}
+
 {% block contenido %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between">
-        <h6 class="m-0 font-weight-bold text-primary">Listado de Programas</h6>
-        <a href="{{ url_for('programa.crear') }}" class="btn btn-primary btn-sm">+ Nuevo Programa</a>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Lista de Programas</h3>
+        {% if not accion %}
+            <a href="{{ url_for('programa.index', accion='nuevo') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Programa
+            </a>
+        {% endif %}
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Nivel</th>
-                        <th>Ciudad</th>
-                        <th>Graduados</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for p in programas %}
-                    <tr>
-                        <td>{{ p.id }}</td>
-                        <td>{{ p.nombre }}</td>
-                        <td>{{ p.nivel }}</td>
-                        <td>{{ p.ciudad }}</td>
-                        <td>{{ p.cant_graduados }}</td>
-                        <td>
-                            <button class="btn btn-outline-secondary btn-sm">ver</button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    {% if accion %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {{ "Modificar Programa" if accion == 'editar' else "Registrar Nuevo Programa" }}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('programa.actualizar') if accion == 'editar' else url_for('programa.crear') }}">
+                {% if accion == 'editar' %}
+                    <input type="hidden" name="id" value="{{ programa_editar.id }}">
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Nombre</label>
+                        <input type="text" name="nombre" class="form-control"
+                               value="{{ programa_editar.nombre if programa_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label font-weight-bold">Tipo</label>
+                        <select name="tipo" class="form-control">
+                            <option value="Pregrado" {{ 'selected' if programa_editar and programa_editar.tipo == 'Pregrado' }}>Pregrado</option>
+                            <option value="Postgrado" {{ 'selected' if programa_editar and programa_editar.tipo == 'Postgrado' }}>Postgrado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Nivel</label>
+                        <input type="text" name="nivel" class="form-control"
+                               value="{{ programa_editar.nivel if programa_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Facultad</label>
+                        <select name="facultad" class="form-control" required>
+                            {% for f in facultades %}
+                            <option value="{{ f.id }}" {{ 'selected' if programa_editar and programa_editar.facultad == f.id }}>
+                                {{ f.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Ciudad</label>
+                        <input type="text" name="ciudad" class="form-control"
+                               value="{{ programa_editar.ciudad if programa_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Nº Cohortes</label>
+                        <input type="number" name="numero_cohortes" class="form-control"
+                               value="{{ programa_editar.numero_cohortes if programa_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Cant. Graduados</label>
+                        <input type="number" name="cant_graduados" class="form-control"
+                               value="{{ programa_editar.cant_graduados if programa_editar else '' }}" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">F. Creación</label>
+                        <input type="date" name="fecha_creacion" class="form-control"
+                               value="{{ programa_editar.fecha_creacion if programa_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">F. Actualización</label>
+                        <input type="date" name="fecha_actualizacion" class="form-control"
+                               value="{{ programa_editar.fecha_actualizacion if programa_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">F. Cierre (Opcional)</label>
+                        <input type="date" name="fecha_cierre" class="form-control"
+                               value="{{ programa_editar.fecha_cierre if programa_editar else '' }}">
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <a href="{{ url_for('programa.index') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Registros en Base de Datos</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Nivel</th>
+                            <th>Ciudad</th>
+                            <th>Graduados</th>
+                            <th>Facultad</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in programas %}
+                        <tr>
+                            <td>{{ p.id }}</td>
+                            <td><strong>{{ p.nombre }}</strong></td>
+                            <td>{{ p.tipo }}</td>
+                            <td>{{ p.nivel }}</td>
+                            <td>{{ p.ciudad }}</td>
+                            <td>{{ p.cant_graduados }}</td>
+                            <td>{{ p.facultad }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('programa.index', accion='editar', id=p.id) }}"
+                                       class="btn btn-sm btn-warning">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('programa.eliminar') }}" style="display:inline;">
+                                        <input type="hidden" name="id" value="{{ p.id }}">
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('¿Eliminar {{ p.nombre }}?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">No hay programas registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

@@ -30,12 +30,11 @@ def index():
 
 @facultad_bp.route("/facultad/crear", methods=["POST"])
 def crear():
-    """Maneja el POST para crear una nueva facultad."""
     datos = {
-        "nombre": request.form.get("nombre"),
-        "tipo": request.form.get("tipo"),
-        "fecha_fun": request.form.get("fecha_fun"),
-        "universidad": request.form.get("universidad")
+        "nombre":     request.form.get("nombre"),
+        "tipo":       request.form.get("tipo"),
+        "fecha_fun":  request.form.get("fecha_fun"),
+        "universidad": int(request.form.get("universidad"))  # ← conversión
     }
     
     exito, mensaje = api.crear("facultad", datos)

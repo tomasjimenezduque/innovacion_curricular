@@ -10,7 +10,8 @@ class Programa(Base):
         ForeignKeyConstraint(['facultad'], ['facultad.id'], name='programa_facultad_fkey'),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    # models/programa.py
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)  # ← agregar autoincrement=True
     nombre: Mapped[str] = mapped_column(String(60), nullable=False)
     tipo: Mapped[str] = mapped_column(String(45), nullable=False)
     nivel: Mapped[str] = mapped_column(String(45), nullable=False)

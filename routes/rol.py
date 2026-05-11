@@ -55,36 +55,21 @@ def actualizar():
         "activo": 'activo' in request.form
     }
     
-    exito, mensaje = api.actualizar(
-        tabla="rol", 
-        clave_nombre="id", 
-        valor_clave=id_r, 
-        datos=datos
-    )
+    # CORRECCIÓN: posicional, igual que facultad y universidad
+    exito, mensaje = api.actualizar("rol", "id", id_r, datos)
     
-    if exito:
-        flash("Rol actualizado correctamente", "success")
-    else:
-        flash(f"Error al actualizar: {mensaje}", "danger")
-        
+    flash("Rol actualizado correctamente" if exito else f"Error: {mensaje}", 
+          "success" if exito else "danger")
     return redirect(url_for('rol.index'))
 
-# ═══════════════════════════════════════════════════════════════
-#  ELIMINAR
-# ═══════════════════════════════════════════════════════════════
+
 @rol_bp.route('/rol/eliminar', methods=['POST'])
 def eliminar():
     id_r = request.form.get('id')
     
-    exito, mensaje = api.eliminar(
-        tabla="rol", 
-        clave_nombre="id", 
-        valor_clave=id_r
-    )
+    # CORRECCIÓN: posicional, igual que facultad y universidad
+    exito, mensaje = api.eliminar("rol", "id", id_r)
     
-    if exito:
-        flash("Rol eliminado con éxito", "success")
-    else:
-        flash(f"Error al eliminar: {mensaje}", "danger")
-        
+    flash("Rol eliminado con éxito" if exito else f"Error: {mensaje}", 
+          "success" if exito else "danger")
     return redirect(url_for('rol.index'))

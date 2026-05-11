@@ -41,16 +41,28 @@ class ProgramaRepository(IRepository):
         result = await self.db.execute(stmt)
         return result.scalars().first()
 
-    async def guardar(self, entidad: Programa, esquema: str = None):
+    async def guardar(self, datos, esquema: str = None):
         try:
+            if isinstance(datos, dict):
+                datos.pop('id', None)
+            
+                # Generamos el ID manualmente
+                from sqlalchemy import func
+                resultado = await self.db.execute(select(func.max(Programa.id)))
+                max_id = resultado.scalar() or 0
+                datos['id'] = max_id + 1
+            
+                entidad = Programa(**datos)
+            else:
+                ntidad = datos
+
             self.db.add(entidad)
-            # CORRECCIÓN: await en commit y refresh
             await self.db.commit()
             await self.db.refresh(entidad)
             return True, "Programa guardado correctamente"
         except Exception as e:
-            # CORRECCIÓN: await en rollback
             await self.db.rollback()
+            print(f"ERROR REPO PROGRAMA (GUARDAR): {e}")
             return False, f"Error al guardar: {str(e)}"
 
     async def actualizar(self, valor_id: int, datos: dict, esquema: str = None):
