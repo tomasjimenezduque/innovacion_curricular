@@ -113,47 +113,87 @@ def crear():
 
 
 @universidad_bp.route('/actualizar', methods=['POST'])
-def actualizar():
-    # 1. Obtenemos los datos del formulario
-    data = request.form.to_dict()
-    
-    # 2. Extraemos el ID para la URL
-    id_uni = data.pop('id', None)
-    
-    if not id_uni:
-        flash("Error: No se encontró el ID de la universidad", "danger")
-        return redirect(url_for('universidad.index'))
 
-    # 3. Llamada al API Service respetando los 4 argumentos:
-    # tabla="universidad", clave_nombre="id", valor_id=id_uni, datos=data
+def actualizar():
+
+    # 1. Capturamos los datos del formulario
+
+    id_u = request.form.get('id')
+
+    datos = {
+
+        "nombre": request.form.get('nombre'),
+
+        "ciudad": request.form.get('ciudad'),
+
+        "tipo": request.form.get('tipo')
+
+    }
+
+   
+
+    # 2. Llamamos al ApiService (el que me mostraste antes)
+
+    # Importante: Pasar 'valor_clave' como el ID
+
     exito, mensaje = api.actualizar(
-        "universidad",  # tabla
-        "id",           # clave_nombre (por compatibilidad)
-        id_uni,         # valor_id
-        data            # datos (el diccionario sin el ID)
+
+        tabla="universidad",
+
+        clave_nombre="id",
+
+        valor_clave=id_u,
+
+        datos=datos
+
     )
-    
-    flash(mensaje, 'success' if exito else 'danger')
+
+   
+
+    if exito:
+
+        flash("Universidad actualizada correctamente", "success")
+
+    else:
+
+        flash(f"Error al actualizar: {mensaje}", "danger")
+
+       
+
     return redirect(url_for('universidad.index'))
 
 
 
 @universidad_bp.route('/eliminar', methods=['POST'])
-def eliminar():
-    # 1. Obtenemos el ID del formulario
-    id_uni = request.form.get('id')
-    
-    if not id_uni:
-        flash("Error: No se pudo encontrar el ID de la universidad", "danger")
-        return redirect(url_for('universidad.index'))
 
-    # 2. Llamada corregida al ApiService
-    # Según tu ApiService: def eliminar(self, recurso, valor_id, nombre_clave):
+def eliminar():
+
+    id_u = request.form.get('id')
+
+   
+
+    # Llamamos al ApiService
+
     exito, mensaje = api.eliminar(
-        "universidad", # recurso/tabla
-        id_uni,        # valor_id
-        "id"           # nombre_clave
+
+        tabla="universidad",
+
+        clave_nombre="id",
+
+        valor_clave=id_u
+
     )
-    
-    flash(mensaje, 'success' if exito else 'danger')
+
+   
+
+    if exito:
+
+        flash("Registro eliminado con éxito", "success")
+
+    else:
+
+        flash(f"Error al eliminar: {mensaje}", "danger")
+
+       
+
     return redirect(url_for('universidad.index'))

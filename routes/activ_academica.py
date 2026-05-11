@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 import requests
-from services import ApiService
+
 activ_academica_bp = Blueprint('activ_academica', __name__)
 
 # URL de tu API de FastAPI (ajusta el puerto si es necesario)

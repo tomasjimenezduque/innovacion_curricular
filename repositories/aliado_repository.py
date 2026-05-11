@@ -10,32 +10,25 @@ class AliadoRepository(IRepository):
         self.db = db
 
     async def obtener_todos(self, esquema: str = None, limite: int = None):
-        """Obtiene la lista de todos los aliados de forma eficiente."""
-        try:
-            stmt = select(Aliado)
-            if limite:
-                stmt = stmt.limit(limite)
-            
-            result = await self.db.execute(stmt)
-            # .unique() asegura que no haya duplicados si luego usas joins
-            # .all() consume el resultado para que la sesión pueda cerrarse limpia
-            return result.scalars().unique().all()
-        except Exception as e:
-            print(f"❌ Error en obtener_todos: {e}")
-            return []
+        """Obtiene la lista de todos los aliados."""
+        stmt = select(Aliado)
+        if limite:
+            stmt = stmt.limit(limite)
+        
+        result = await self.db.execute(stmt)
+        return result.scalars().all()
 
     async def obtener_por_id(self, valor_id: str, esquema: str = None):
-        """Busca un aliado por su NIT."""
-        try:
-            stmt = select(Aliado).where(Aliado.nit == str(valor_id))
-            result = await self.db.execute(stmt)
-            return result.scalars().first()
-        except Exception as e:
-            print(f"❌ Error en obtener_por_id: {e}")
-            return None
+        """
+        Busca un aliado por su NIT (que ahora actúa como ID).
+        Nota: valor_id ahora es str.
+        """
+        stmt = select(Aliado).where(Aliado.nit == valor_id)
+        result = await self.db.execute(stmt)
+        return result.scalars().first()
 
     async def guardar(self, entidad: Aliado, esquema: str = None):
-        """Guarda un nuevo aliado con gestión de commit explícito."""
+        """Guarda un nuevo aliado en la base de datos."""
         try:
             self.db.add(entidad)
             await self.db.commit()
@@ -46,13 +39,14 @@ class AliadoRepository(IRepository):
             return False, f"Error al guardar: {str(e)}"
 
     async def actualizar(self, valor_id: str, datos: dict, esquema: str = None):
-        """Actualiza un aliado usando update() para evitar cargas innecesarias."""
+        """
+        Actualiza un aliado existente usando el NIT como referencia.
+        """
         try:
             stmt = (
                 update(Aliado)
-                .where(Aliado.nit == str(valor_id))
+                .where(Aliado.nit == valor_id)
                 .values(**datos)
-                .execution_options(synchronize_session="fetch")
             )
             
             result = await self.db.execute(stmt)
@@ -60,13 +54,13 @@ class AliadoRepository(IRepository):
             
             if result.rowcount > 0:
                 return True, "Aliado actualizado correctamente"
-            return False, "No se encontró el aliado con ese NIT"
+            return False, "No se encontró el aliado con ese NIT para actualizar"
         except Exception as e:
             await self.db.rollback()
-            return False, f"Error al actualizar: {str(e)}"
+            return False, f"Error al actualizar aliado: {str(e)}"
 
     async def eliminar(self, entidad: Aliado, esquema: str = None):
-        """Elimina el registro y confirma la transacción."""
+        """Elimina un objeto aliado de la base de datos."""
         try:
             await self.db.delete(entidad)
             await self.db.commit()

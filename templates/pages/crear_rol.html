@@ -1,36 +1,35 @@
 {% extends "layout/base.html" %}
 
-{% block titulo %}Definir Nuevo Rol{% endblock %}
-
 {% block contenido %}
 <div class="card shadow mb-4">
     <div class="card-header py-3">
         <h6 class="m-0 font-weight-bold text-primary">Definir Nuevo Rol</h6>
     </div>
     <div class="card-body">
+        <!-- Agregamos el action apuntando a la ruta de crear -->
         <form action="{{ url_for('rol.crear') }}" method="POST">
             <div class="row">
                 <div class="col-md-8 mb-3">
-                    <label class="form-label">Nombre del Rol</label>
+                    <label>Nombre del Rol</label>
+                    <!-- 'name="nombre"' coincide con el modelo SQL -->
                     <input type="text" name="nombre" class="form-control" 
                            placeholder="Ej: Administrador, Auditor, Visualizador" required>
                 </div>
                 <div class="col-md-4 mb-3 d-flex align-items-end">
-                    <!-- Estructura estándar de Bootstrap para el switch de actividad -->
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="activo" name="activo" checked>
-                        <label class="form-check-label" for="activo">Rol Activo</label>
+                    <div class="custom-control custom-checkbox mb-2">
+                        <!-- El 'id' y el 'for' deben coincidir para que sea clickable -->
+                        <input type="checkbox" class="custom-control-input" id="activo" name="activo" checked>
+                        <label class="custom-control-label" for="activo">Rol Activo</label>
                     </div>
                 </div>
             </div>
-            
             <div class="mb-3">
-                <label class="form-label">Descripción del Rol</label>
+                <label>Descripción del Rol</label>
+                <!-- 'name="descripcion"' coincide con el modelo SQL -->
                 <textarea name="descripcion" class="form-control" rows="3" 
-                          placeholder="Define los alcances y permisos de este rol..."></textarea>
+                          placeholder="Define los alcances de este rol..."></textarea>
             </div>
-
-            <div class="mt-4">
+            <div class="mt-3">
                 <button type="submit" class="btn btn-success">
                     <i class="fas fa-save"></i> Guardar Rol
                 </button>
