@@ -1,65 +1,65 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select, update, text
 from .abstracciones.i_repository import IRepository
 from models.acreditacion import Acreditacion
 
 class AcreditacionRepository(IRepository):
 
-    def __init__(self, db: AsyncSession): # Cambiado a AsyncSession
+    def __init__(self, db: AsyncSession):
         self.db = db
 
     async def obtener_todos(self, esquema: str = None, limite: int = None):
         stmt = select(Acreditacion)
         if limite:
             stmt = stmt.limit(limite)
-        
-        # CORRECCIÓN: await para ejecutar
         result = await self.db.execute(stmt)
-        return result.scalars().all()
+        filas = result.scalars().all()
+        resultado_limpio = []
+        for f in filas:
+            d = f.__dict__.copy()
+            d.pop('_sa_instance_state', None)
+            resultado_limpio.append(d)
+        return resultado_limpio
 
     async def obtener_por_id(self, valor_id: int, esquema: str = None):
-        stmt = select(Acreditacion).where(Acreditacion.id == valor_id)
-        # CORRECCIÓN: await para ejecutar
+        stmt = select(Acreditacion).where(Acreditacion.resolucion == valor_id)  # ← PK correcta
         result = await self.db.execute(stmt)
-        return result.scalars().first()
+        fila = result.scalars().first()
+        return fila.__dict__ if fila else None
 
-    async def guardar(self, entidad: Acreditacion, esquema: str = None):
+    async def guardar(self, datos: dict, esquema: str = None):
         try:
+            entidad = Acreditacion(**datos)
             self.db.add(entidad)
-            # CORRECCIÓN: await en commit y refresh
             await self.db.commit()
-            await self.db.refresh(entidad)
-            return True, "Registro guardado correctamente"
+            return True, "Acreditación guardada correctamente"
         except Exception as e:
-            # CORRECCIÓN: await en rollback
             await self.db.rollback()
+            print(f"ERROR REPO ACREDITACION (GUARDAR): {e}")
             return False, f"Error: {str(e)}"
 
     async def actualizar(self, valor_id: int, datos: dict, esquema: str = None):
         try:
-            stmt = (
-                update(Acreditacion)
-                .where(Acreditacion.id == valor_id)
-                .values(**datos)
-            )
-            
-            # CORRECCIÓN: await en execute y commit
+            datos.pop('resolucion', None)
+            stmt = update(Acreditacion).where(
+                Acreditacion.resolucion == valor_id  # ← PK correcta
+            ).values(**datos)
             result = await self.db.execute(stmt)
             await self.db.commit()
-            
             if result.rowcount > 0:
                 return True, "Acreditación actualizada correctamente"
-            return False, "No se encontró el registro para actualizar"
+            return False, "No se encontró el registro"
         except Exception as e:
             await self.db.rollback()
             return False, f"Error al actualizar: {str(e)}"
 
-    async def eliminar(self, entidad: Acreditacion, esquema: str = None):
+    async def eliminar(self, entidad: dict, esquema: str = None):
         try:
-            # CORRECCIÓN: await en delete y commit
-            await self.db.delete(entidad)
+            valor_id = entidad.get('resolucion') if isinstance(entidad, dict) else entidad.resolucion
+            sql = text("DELETE FROM acreditacion WHERE resolucion = :r")
+            await self.db.execute(sql, {"r": valor_id})
             await self.db.commit()
-            return True, "Registro eliminado correctamente"
+            return True, "Acreditación eliminada correctamente"
         except Exception as e:
             await self.db.rollback()
             return False, f"Error: {str(e)}"

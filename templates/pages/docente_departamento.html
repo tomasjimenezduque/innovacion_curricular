@@ -1,45 +1,144 @@
 {% extends "layout/base.html" %}
 
+{% block titulo %}Docentes por Programa{% endblock %}
+{% block encabezado %}Gestión de Docentes por Departamento{% endblock %}
+
 {% block contenido %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between">
-        <h6 class="m-0 font-weight-bold text-primary">Docentes por Departamento/Programa</h6>
-        <a href="{{ url_for('docente_departamento.crear') }}" class="btn btn-primary btn-sm">+ Asignar Docente</a>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Asignaciones Docente-Programa</h3>
+        {% if not accion %}
+            <a href="{{ url_for('docente_departamento.index', accion='nuevo') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nueva Asignación
+            </a>
+        {% endif %}
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>ID Docente</th>
-                        <th>ID Programa</th>
-                        <th>Dedicación</th>
-                        <th>Modalidad</th>
-                        <th>Ingreso</th>
-                        <th>Estado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for r in registros %}
-                    <tr>
-                        <td>{{ r.docente }}</td>
-                        <td>{{ r.departamento }}</td>
-                        <td>{{ r.dedicacion }}</td>
-                        <td>{{ r.modalidad }}</td>
-                        <td>{{ r.fecha_ingreso }}</td>
-                        <td>
-                            {% if r.fecha_salida %}
-                                <span class="badge badge-secondary">Inactivo</span>
-                            {% else %}
-                                <span class="badge badge-success">Activo</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="6" class="text-center">No hay docentes asignados</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    {% if accion %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {{ "Modificar Asignación" if accion == 'editar' else "Registrar Nueva Asignación" }}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('docente_departamento.actualizar') if accion == 'editar' else url_for('docente_departamento.crear') }}">
+                {% if accion == 'editar' %}
+                    <input type="hidden" name="docente" value="{{ registro_editar.docente }}">
+                    <input type="hidden" name="departamento" value="{{ registro_editar.departamento }}">
+                {% endif %}
+
+                <div class="row">
+                    {% if accion != 'editar' %}
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">ID Docente</label>
+                        <input type="number" name="docente" class="form-control" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Programa</label>
+                        <select name="departamento" class="form-control" required>
+                            {% for p in programas %}
+                            <option value="{{ p.id }}">{{ p.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Dedicación</label>
+                        <select name="dedicacion" class="form-control">
+                            {% for op in ['Tiempo Completo', 'Medio Tiempo', 'Cátedra'] %}
+                            <option value="{{ op }}" {{ 'selected' if registro_editar and registro_editar.dedicacion == op }}>{{ op }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Modalidad</label>
+                        <input type="text" name="modalidad" class="form-control"
+                               value="{{ registro_editar.modalidad if registro_editar else '' }}" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Fecha Ingreso</label>
+                        <input type="date" name="fecha_ingreso" class="form-control"
+                               value="{{ registro_editar.fecha_ingreso if registro_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Fecha Salida (Opcional)</label>
+                        <input type="date" name="fecha_salida" class="form-control"
+                               value="{{ registro_editar.fecha_salida if registro_editar else '' }}">
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <a href="{{ url_for('docente_departamento.index') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Registros en Base de Datos</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID Docente</th>
+                            <th>Programa</th>
+                            <th>Dedicación</th>
+                            <th>Modalidad</th>
+                            <th>F. Ingreso</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in registros %}
+                        <tr>
+                            <td>{{ r.docente }}</td>
+                            <td>{{ r.departamento }}</td>
+                            <td>{{ r.dedicacion }}</td>
+                            <td>{{ r.modalidad }}</td>
+                            <td>{{ r.fecha_ingreso }}</td>
+                            <td>
+                                {% if r.fecha_salida %}
+                                    <span class="badge badge-secondary">Inactivo</span>
+                                {% else %}
+                                    <span class="badge badge-success">Activo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('docente_departamento.index', accion='editar', docente=r.docente, departamento=r.departamento) }}"
+                                       class="btn btn-sm btn-warning">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('docente_departamento.eliminar') }}" style="display:inline;">
+                                        <input type="hidden" name="docente" value="{{ r.docente }}">
+                                        <input type="hidden" name="departamento" value="{{ r.departamento }}">
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('¿Eliminar asignación del docente {{ r.docente }}?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No hay asignaciones registradas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

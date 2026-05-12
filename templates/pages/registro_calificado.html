@@ -1,43 +1,167 @@
 {% extends "layout/base.html" %}
 
+{% block titulo %}Registros Calificados{% endblock %}
+{% block encabezado %}Gestión de Registros Calificados{% endblock %}
+
 {% block contenido %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Registros Calificados</h6>
-        <a href="{{ url_for('registro_calificado.crear') }}" class="btn btn-primary btn-sm">+ Nuevo Registro</a>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Lista de Registros Calificados</h3>
+        {% if not accion %}
+            <a href="{{ url_for('registro_calificado.index', accion='nuevo') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Registro
+            </a>
+        {% endif %}
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover table-sm">
-                <thead>
-                    <tr>
-                        <th>Código (SNIES)</th>
-                        <th>Programa (ID)</th>
-                        <th>Metodología</th>
-                        <th>Titulacion</th>
-                        <th>Créditos</th>
-                        <th>Vigencia</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for r in registros %}
-                    <tr>
-                        <td><strong>{{ r.codigo }}</strong></td>
-                        <td>{{ r.programa }}</td>
-                        <td>{{ r.metodologia }}</td>
-                        <td>{{ r.tipo_titulacion }}</td>
-                        <td>{{ r.cant_creditos }}</td>
-                        <td>{{ r.fecha_inicio }} / {{ r.fecha_fin }}</td>
-                        <td>
-                            <button class="btn btn-outline-info btn-sm">Detalle</button>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="7" class="text-center">No hay registros calificados</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    {% if accion %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {{ "Modificar Registro" if accion == 'editar' else "Nuevo Registro Calificado" }}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('registro_calificado.actualizar') if accion == 'editar' else url_for('registro_calificado.crear') }}">
+                {% if accion == 'editar' %}
+                    <input type="hidden" name="codigo" value="{{ registro_editar.codigo }}">
+                {% endif %}
+
+                <div class="row">
+                    {% if accion != 'editar' %}
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Código SNIES</label>
+                        <input type="number" name="codigo" class="form-control" required>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-{% if accion == 'editar' %}4{% else %}3{% endif %} mb-3">
+                        <label class="form-label font-weight-bold">Programa</label>
+                        <select name="programa" class="form-control" required>
+                            {% for p in programas %}
+                            <option value="{{ p.id }}" {{ 'selected' if registro_editar and registro_editar.programa == p.id }}>
+                                {{ p.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Metodología</label>
+                        <select name="metodologia" class="form-control">
+                            {% for op in ['Presencial', 'Virtual', 'Distancia', 'Dual'] %}
+                            <option value="{{ op }}" {{ 'selected' if registro_editar and registro_editar.metodologia == op }}>{{ op }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Tipo Titulación</label>
+                        <input type="text" name="tipo_titulacion" class="form-control"
+                               value="{{ registro_editar.tipo_titulacion if registro_editar else '' }}" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label font-weight-bold">Créditos</label>
+                        <input type="text" name="cant_creditos" class="form-control"
+                               value="{{ registro_editar.cant_creditos if registro_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label font-weight-bold">Hs. Acompañadas</label>
+                        <input type="text" name="hora_acom" class="form-control"
+                               value="{{ registro_editar.hora_acom if registro_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label font-weight-bold">Hs. Independientes</label>
+                        <input type="text" name="hora_ind" class="form-control"
+                               value="{{ registro_editar.hora_ind if registro_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label font-weight-bold">Duración (Años)</label>
+                        <input type="text" name="duracion_anios" class="form-control"
+                               value="{{ registro_editar.duracion_anios if registro_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label font-weight-bold">Duración (Semestres)</label>
+                        <input type="text" name="duracion_semestres" class="form-control"
+                               value="{{ registro_editar.duracion_semestres if registro_editar else '' }}" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Fecha Inicio Vigencia</label>
+                        <input type="date" name="fecha_inicio" class="form-control"
+                               value="{{ registro_editar.fecha_inicio if registro_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Fecha Fin Vigencia</label>
+                        <input type="date" name="fecha_fin" class="form-control"
+                               value="{{ registro_editar.fecha_fin if registro_editar else '' }}" required>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <a href="{{ url_for('registro_calificado.index') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Registros en Base de Datos</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Programa</th>
+                            <th>Metodología</th>
+                            <th>Titulación</th>
+                            <th>Créditos</th>
+                            <th>Vigencia</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in registros %}
+                        <tr>
+                            <td><strong>{{ r.codigo }}</strong></td>
+                            <td>{{ r.programa }}</td>
+                            <td>{{ r.metodologia }}</td>
+                            <td>{{ r.tipo_titulacion }}</td>
+                            <td>{{ r.cant_creditos }}</td>
+                            <td>{{ r.fecha_inicio }} / {{ r.fecha_fin }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('registro_calificado.index', accion='editar', id=r.codigo) }}"
+                                       class="btn btn-sm btn-warning">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('registro_calificado.eliminar') }}" style="display:inline;">
+                                        <input type="hidden" name="codigo" value="{{ r.codigo }}">
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('¿Eliminar registro {{ r.codigo }}?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No hay registros calificados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

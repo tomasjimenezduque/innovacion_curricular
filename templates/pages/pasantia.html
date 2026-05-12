@@ -1,40 +1,127 @@
 {% extends "layout/base.html" %}
+{% block titulo %}Pasantías{% endblock %}
+{% block encabezado %}Gestión de Pasantías{% endblock %}
+
 {% block contenido %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Listado de Pasantías</h6>
-        <a href="{{ url_for('pasantia.crear') }}" class="btn btn-primary btn-sm">+ Nueva Pasantía</a>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Lista de Pasantías</h3>
+        {% if not accion %}
+            <a href="{{ url_for('pasantia.index', accion='nuevo') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nueva Pasantía
+            </a>
+        {% endif %}
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Empresa</th>
-                        <th>País</th>
-                        <th>Programa (ID)</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for p in pasantias %}
-                    <tr>
-                        <td>{{ p.id }}</td>
-                        <td>{{ p.nombre }}</td>
-                        <td>{{ p.empresa }}</td>
-                        <td><span class="badge badge-light text-dark">{{ p.pais }}</span></td>
-                        <td>{{ p.programa }}</td>
-                        <td>
-                            <button class="btn btn-outline-secondary btn-sm">Ver más</button>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="6" class="text-center">No hay pasantías registradas</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    {% if accion %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {{ "Modificar Pasantía" if accion == 'editar' else "Registrar Nueva Pasantía" }}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('pasantia.actualizar') if accion == 'editar' else url_for('pasantia.crear') }}">
+                {% if accion == 'editar' %}
+                    <input type="hidden" name="id" value="{{ pasantia_editar.id }}">
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label font-weight-bold">Título</label>
+                        <input type="text" name="nombre" class="form-control"
+                               value="{{ pasantia_editar.nombre if pasantia_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Empresa</label>
+                        <input type="text" name="empresa" class="form-control"
+                               value="{{ pasantia_editar.empresa if pasantia_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">País</label>
+                        <input type="text" name="pais" class="form-control"
+                               value="{{ pasantia_editar.pais if pasantia_editar else '' }}" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Programa</label>
+                        <select name="programa" class="form-control" required>
+                            {% for p in programas %}
+                            <option value="{{ p.id }}" {{ 'selected' if pasantia_editar and pasantia_editar.programa == p.id }}>
+                                {{ p.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label font-weight-bold">Descripción</label>
+                        <input type="text" name="descripcion" class="form-control"
+                               value="{{ pasantia_editar.descripcion if pasantia_editar else '' }}"
+                               maxlength="45" required>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <a href="{{ url_for('pasantia.index') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Registros en Base de Datos</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Empresa</th>
+                            <th>País</th>
+                            <th>Programa</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in pasantias %}
+                        <tr>
+                            <td>{{ p.id }}</td>
+                            <td><strong>{{ p.nombre }}</strong></td>
+                            <td>{{ p.empresa }}</td>
+                            <td>{{ p.pais }}</td>
+                            <td>{{ p.programa }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('pasantia.index', accion='editar', id=p.id) }}"
+                                       class="btn btn-sm btn-warning">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('pasantia.eliminar') }}" style="display:inline;">
+                                        <input type="hidden" name="id" value="{{ p.id }}">
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('¿Eliminar pasantía {{ p.nombre }}?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No hay pasantías registradas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

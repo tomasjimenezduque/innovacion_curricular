@@ -3,6 +3,8 @@ from services import ApiService
 
 acreditacion_bp = Blueprint("acreditacion", __name__)
 api = ApiService()
+TABLA = "acreditacion"
+CLAVE = "resolucion"
 
 @acreditacion_bp.route("/acreditacion")
 def index():
@@ -10,12 +12,11 @@ def index():
     accion = request.args.get("accion")
     clave = request.args.get("clave")
 
-    # Obtener lista de acreditaciones
-    registros = api.listar("acreditacion", limite=limite)
+    registros = api.listar(TABLA, limite=limite)
 
     registro_editar = None
     if accion == "editar" and clave:
-        registro_editar = api.obtener("acreditacion", clave)
+        registro_editar = api.get(TABLA, clave)  # ← api.get, no api.obtener
 
     return render_template(
         "pages/acreditacion.html",
@@ -28,14 +29,14 @@ def index():
 @acreditacion_bp.route("/acreditacion/crear", methods=["POST"])
 def crear():
     datos = {
-        "resolucion": int(request.form.get("resolucion", 0)),
-        "tipo": request.form.get("tipo"),
+        "resolucion":  int(request.form.get("resolucion")),
+        "tipo":        request.form.get("tipo"),
         "calificacion": request.form.get("calificacion"),
-        "programa": int(request.form.get("programa", 0)),
+        "programa":    int(request.form.get("programa")),
         "fecha_inicio": request.form.get("fecha_inicio"),
-        "fecha_fin": request.form.get("fecha_fin")
+        "fecha_fin":   request.form.get("fecha_fin")
     }
-    exito, mensaje = api.crear("acreditacion", datos)
+    exito, mensaje = api.crear(TABLA, datos)
     flash(mensaje, "success" if exito else "danger")
     return redirect(url_for("acreditacion.index"))
 
@@ -43,20 +44,21 @@ def crear():
 def actualizar():
     resolucion = request.form.get("resolucion")
     datos = {
-        "resolucion": int(resolucion),
-        "tipo": request.form.get("tipo"),
+        "tipo":        request.form.get("tipo"),
         "calificacion": request.form.get("calificacion"),
-        "programa": int(request.form.get("programa", 0)),
+        "programa":    int(request.form.get("programa")),
         "fecha_inicio": request.form.get("fecha_inicio"),
-        "fecha_fin": request.form.get("fecha_fin")
+        "fecha_fin":   request.form.get("fecha_fin")
     }
-    exito, mensaje = api.actualizar("acreditacion", resolucion, datos)
+    # ← firma correcta: (tabla, clave_nombre, valor_id, datos)
+    exito, mensaje = api.actualizar(TABLA, CLAVE, resolucion, datos)
     flash(mensaje, "success" if exito else "danger")
     return redirect(url_for("acreditacion.index"))
 
 @acreditacion_bp.route("/acreditacion/eliminar", methods=["POST"])
 def eliminar():
     resolucion = request.form.get("resolucion")
-    exito, mensaje = api.eliminar("acreditacion", resolucion)
+    # ← firma correcta: (tabla, clave_nombre, valor_id)
+    exito, mensaje = api.eliminar(TABLA, CLAVE, resolucion)
     flash(mensaje, "success" if exito else "danger")
     return redirect(url_for("acreditacion.index"))

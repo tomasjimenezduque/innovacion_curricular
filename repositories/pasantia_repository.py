@@ -1,70 +1,68 @@
-from sqlalchemy.ext.asyncio import AsyncSession # Cambio a AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, update, text, func
 from .abstracciones.i_repository import IRepository
 from models.pasantia import Pasantia
 
 class PasantiaRepository(IRepository):
 
-    def __init__(self, db: AsyncSession): # Recibe AsyncSession
+    def __init__(self, db: AsyncSession):
         self.db = db
 
     async def obtener_todos(self, esquema: str = None, limite: int = None):
-        """Consulta asíncrona de todas las pasantías registradas."""
         stmt = select(Pasantia)
         if limite:
             stmt = stmt.limit(limite)
-        
-        # CORRECCIÓN: await para ejecutar la consulta
         result = await self.db.execute(stmt)
-        return result.scalars().all()
+        filas = result.scalars().all()
+        resultado_limpio = []
+        for f in filas:
+            d = f.__dict__.copy()
+            d.pop('_sa_instance_state', None)
+            resultado_limpio.append(d)
+        return resultado_limpio
 
     async def obtener_por_id(self, valor_id: int, esquema: str = None):
-        """Obtiene una pasantía específica por su identificador único."""
         stmt = select(Pasantia).where(Pasantia.id == valor_id)
-        # CORRECCIÓN: await para ejecutar la consulta
         result = await self.db.execute(stmt)
-        return result.scalars().first()
+        fila = result.scalars().first()
+        return fila.__dict__ if fila else None
 
-    async def guardar(self, entidad: Pasantia, esquema: str = None):
+    async def guardar(self, datos: dict, esquema: str = None):
         try:
+            datos.pop('id', None)
+            resultado = await self.db.execute(select(func.max(Pasantia.id)))
+            max_id = resultado.scalar() or 0
+            datos['id'] = max_id + 1
+
+            entidad = Pasantia(**datos)
             self.db.add(entidad)
-            # CORRECCIÓN: await en commit y refresh
             await self.db.commit()
-            await self.db.refresh(entidad)
             return True, "Pasantía guardada correctamente"
         except Exception as e:
-            # CORRECCIÓN: await en rollback
             await self.db.rollback()
+            print(f"ERROR REPO PASANTIA (GUARDAR): {e}")
             return False, f"Error: {str(e)}"
 
     async def actualizar(self, valor_id: int, datos: dict, esquema: str = None):
-        """
-        Actualiza los datos de una pasantía (empresa, tutor, fechas, etc.).
-        """
         try:
-            stmt = (
-                update(Pasantia)
-                .where(Pasantia.id == valor_id)
-                .values(**datos)
-            )
-            
-            # CORRECCIÓN: await en execute y commit
+            datos.pop('id', None)
+            stmt = update(Pasantia).where(Pasantia.id == valor_id).values(**datos)
             result = await self.db.execute(stmt)
             await self.db.commit()
-            
             if result.rowcount > 0:
                 return True, "Pasantía actualizada correctamente"
-            return False, "No se encontró la pasantía para actualizar"
+            return False, "No se encontró la pasantía"
         except Exception as e:
             await self.db.rollback()
-            return False, f"Error al actualizar pasantía: {str(e)}"
+            return False, f"Error al actualizar: {str(e)}"
 
-    async def eliminar(self, entidad: Pasantia, esquema: str = None):
+    async def eliminar(self, entidad: dict, esquema: str = None):
         try:
-            # CORRECCIÓN: await en delete y commit
-            await self.db.delete(entidad)
+            valor_id = entidad.get('id') if isinstance(entidad, dict) else entidad.id
+            sql = text("DELETE FROM pasantia WHERE id = :id_val")
+            await self.db.execute(sql, {"id_val": valor_id})
             await self.db.commit()
-            return True, "Registro eliminado correctamente"
+            return True, "Pasantía eliminada correctamente"
         except Exception as e:
             await self.db.rollback()
             return False, f"Error: {str(e)}"

@@ -1,41 +1,59 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-import requests
+from services.api_service import ApiService
 
 pasantia_bp = Blueprint('pasantia', __name__)
+api = ApiService()
+TABLA = 'pasantia'
+CLAVE = 'id'
 
-API_URL_PAS = "http://127.0.0.1:8000/api/pasantia"
-API_URL_PROG = "http://127.0.0.1:8000/api/programa"
-
-@pasantia_bp.route('/')
+@pasantia_bp.route('/pasantia')
 def index():
-    try:
-        response = requests.get(API_URL_PAS)
-        datos = response.json().get('datos', []) if response.status_code == 200 else []
-        return render_template('pages/pasantia.html', pasantias=datos)
-    except Exception as e:
-        print(f"Error Pasantía: {e}")
-        return render_template('pages/pasantia.html', pasantias=[])
+    accion = request.args.get('accion')
+    id_p = request.args.get('id')
 
-@pasantia_bp.route('/crear', methods=['GET', 'POST'])
+    pasantias = api.listar(TABLA)
+    programas = api.listar('programa')
+
+    pasantia_editar = None
+    if accion == 'editar' and id_p:
+        pasantia_editar = api.get(TABLA, id_p)
+
+    return render_template('pages/pasantia.html',
+                           pasantias=pasantias,
+                           programas=programas,
+                           accion=accion,
+                           pasantia_editar=pasantia_editar)
+
+@pasantia_bp.route('/pasantia/crear', methods=['POST'])
 def crear():
-    if request.method == 'POST':
-        data = {
-            "nombre": request.form.get('nombre'),
-            "pais": request.form.get('pais'),
-            "empresa": request.form.get('empresa'),
-            "descripcion": request.form.get('descripcion'),
-            "programa": int(request.form.get('programa'))
-        }
-        response = requests.post(API_URL_PAS, json=data)
-        if response.status_code == 201:
-            flash("Pasantía registrada correctamente", "success")
-            return redirect(url_for('pasantia.index'))
-        flash("Error al registrar la pasantía", "danger")
+    datos = {
+        "nombre":      request.form.get('nombre'),
+        "pais":        request.form.get('pais'),
+        "empresa":     request.form.get('empresa'),
+        "descripcion": request.form.get('descripcion'),
+        "programa":    int(request.form.get('programa'))
+    }
+    exito, mensaje = api.crear(TABLA, datos)
+    flash(mensaje, 'success' if exito else 'danger')
+    return redirect(url_for('pasantia.index'))
 
-    # Cargar programas para el select
-    try:
-        programas = requests.get(API_URL_PROG).json().get('datos', [])
-    except:
-        programas = []
-        
-    return render_template('pages/crear_pasantia.html', programas=programas)
+@pasantia_bp.route('/pasantia/actualizar', methods=['POST'])
+def actualizar():
+    id_p = request.form.get('id')
+    datos = {
+        "nombre":      request.form.get('nombre'),
+        "pais":        request.form.get('pais'),
+        "empresa":     request.form.get('empresa'),
+        "descripcion": request.form.get('descripcion'),
+        "programa":    int(request.form.get('programa'))
+    }
+    exito, mensaje = api.actualizar(TABLA, CLAVE, id_p, datos)
+    flash(mensaje, 'success' if exito else 'danger')
+    return redirect(url_for('pasantia.index'))
+
+@pasantia_bp.route('/pasantia/eliminar', methods=['POST'])
+def eliminar():
+    id_p = request.form.get('id')
+    exito, mensaje = api.eliminar(TABLA, CLAVE, id_p)
+    flash(mensaje, 'success' if exito else 'danger')
+    return redirect(url_for('pasantia.index'))

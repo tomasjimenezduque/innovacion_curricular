@@ -23,6 +23,19 @@ async def listar(
         }
     except Exception as ex:
         raise HTTPException(status_code=500, detail=str(ex))
+    
+@router.get("/{id}")
+async def obtener_por_id(id: int):
+    try:
+        servicio = crear_servicio_enfoque()
+        fila = await servicio.obtener_por_id(id)
+        if not fila:
+            raise HTTPException(status_code=404, detail="Enfoque no encontrado")
+        return fila
+    except HTTPException:
+        raise
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def crear(

@@ -1,67 +1,89 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select, update, text
 from .abstracciones.i_repository import IRepository
 from models.alianza import Alianza
+import datetime
 
 class AlianzaRepository(IRepository):
 
-    def __init__(self, db: AsyncSession): # Cambiado a AsyncSession
+    def __init__(self, db: AsyncSession):
         self.db = db
 
     async def obtener_todos(self, esquema: str = None, limite: int = None):
         stmt = select(Alianza)
         if limite:
             stmt = stmt.limit(limite)
-        
-        # CORRECCIÓN: await para ejecutar
         result = await self.db.execute(stmt)
-        return result.scalars().all()
+        filas = result.scalars().all()
 
-    async def obtener_por_id(self, valor_id: int, esquema: str = None):
-        stmt = select(Alianza).where(Alianza.id == valor_id)
-        # CORRECCIÓN: await para ejecutar
+        resultado_limpio = []
+        for f in filas:
+            d = f.__dict__.copy()
+            d.pop('_sa_instance_state', None)
+            if isinstance(d.get('fecha_inicio'), (datetime.date, datetime.datetime)):
+                d['fecha_inicio'] = d['fecha_inicio'].isoformat()
+            if isinstance(d.get('fecha_fin'), (datetime.date, datetime.datetime)):
+                d['fecha_fin'] = d['fecha_fin'].isoformat()
+            resultado_limpio.append(d)
+        return resultado_limpio
+
+    async def obtener_por_id(self, aliado_nit: str, departamento_id: int, esquema: str = None):
+        stmt = select(Alianza).where(
+            Alianza.aliado == aliado_nit,
+            Alianza.departamento == departamento_id
+        )
         result = await self.db.execute(stmt)
-        return result.scalars().first()
+        fila = result.scalars().first()
+        return fila.__dict__ if fila else None
 
-    async def guardar(self, entidad: Alianza, esquema: str = None):
+    async def guardar(self, datos: dict, esquema: str = None):
         try:
+            datos['aliado'] = str(datos['aliado'])
+            if isinstance(datos.get('fecha_inicio'), str):
+                datos['fecha_inicio'] = datetime.datetime.strptime(datos['fecha_inicio'], '%Y-%m-%d').date()
+            if datos.get('fecha_fin') and isinstance(datos['fecha_fin'], str):
+                datos['fecha_fin'] = datetime.datetime.strptime(datos['fecha_fin'], '%Y-%m-%d').date()
+
+            entidad = Alianza(**datos)
             self.db.add(entidad)
-            # CORRECCIÓN: await en commit y refresh
             await self.db.commit()
-            await self.db.refresh(entidad)
             return True, "Alianza guardada correctamente"
         except Exception as e:
-            # CORRECCIÓN: await en rollback
             await self.db.rollback()
+            print(f"ERROR REPO ALIANZA (GUARDAR): {e}")
             return False, f"Error: {str(e)}"
 
-    async def actualizar(self, valor_id: int, datos: dict, esquema: str = None):
+    async def actualizar(self, aliado_nit: str, departamento_id: int, datos: dict, esquema: str = None):
         try:
+            if isinstance(datos.get('fecha_inicio'), str):
+                datos['fecha_inicio'] = datetime.datetime.strptime(datos['fecha_inicio'], '%Y-%m-%d').date()
+            if datos.get('fecha_fin') and isinstance(datos['fecha_fin'], str):
+                datos['fecha_fin'] = datetime.datetime.strptime(datos['fecha_fin'], '%Y-%m-%d').date()
+
             stmt = (
                 update(Alianza)
-                .where(Alianza.id == valor_id)
+                .where(
+                    Alianza.aliado == aliado_nit,
+                    Alianza.departamento == departamento_id
+                )
                 .values(**datos)
             )
-            
-            # CORRECCIÓN: await en execute y commit
             result = await self.db.execute(stmt)
             await self.db.commit()
-            
+
             if result.rowcount > 0:
                 return True, "Alianza actualizada correctamente"
-            return False, "No se encontró la alianza para actualizar"
+            return False, "No se encontró la alianza"
         except Exception as e:
-            # CORRECCIÓN: await en rollback
             await self.db.rollback()
-            return False, f"Error al actualizar la alianza: {str(e)}"
+            return False, f"Error al actualizar: {str(e)}"
 
-    async def eliminar(self, entidad: Alianza, esquema: str = None):
+    async def eliminar(self, aliado_nit: str, departamento_id: int, esquema: str = None):
         try:
-            # CORRECCIÓN: await en delete y commit
-            await self.db.delete(entidad)
+            sql = text("DELETE FROM alianza WHERE aliado = :nit AND departamento = :dep")
+            await self.db.execute(sql, {"nit": aliado_nit, "dep": departamento_id})
             await self.db.commit()
-            return True, "Registro eliminado correctamente"
+            return True, "Alianza eliminada correctamente"
         except Exception as e:
-            # CORRECCIÓN: await en rollback
             await self.db.rollback()
-            return False, f"Error: {str(e)}"
+            return False, f"Error al eliminar: {str(e)}"

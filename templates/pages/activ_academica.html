@@ -1,63 +1,177 @@
 {% extends "layout/base.html" %}
 
-{% block titulo %}actividades académicas{% endblock %}
-{% block encabezado %}gestión de actividades académicas{% endblock %}
+{% block titulo %}Actividades Académicas{% endblock %}
+{% block encabezado %}Gestión de Actividades Académicas{% endblock %}
 
 {% block contenido %}
-<div class="card shadow-sm">
-    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">listado de actividades</h6>
-        <a href="{{ url_for('activ_academica.crear') }}" class="btn btn-primary btn-sm shadow-sm">
-            <i class="bi bi-plus-circle"></i> + nueva actividad
-        </a>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Lista de Actividades</h3>
+        {% if not accion %}
+            <a href="{{ url_for('activ_academica.index', accion='nuevo') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nueva Actividad
+            </a>
+        {% endif %}
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover" id="tabla_actividades">
-                <thead class="table-light">
-                    <tr>
-                        <th>id</th>
-                        <th>nombre</th>
-                        <th>tipo</th>
-                        <th>créditos</th>
-                        <th>horas (acom/ind)</th>
-                        <th>idioma</th>
-                        <th>espejo</th>
-                        <th>acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in actividades %}
-                    <tr>
-                        <td>{{ item.id }}</td>
-                        <td><strong>{{ item.nombre }}</strong></td>
-                        <td><span class="badge bg-info text-dark">{{ item.tipo }}</span></td>
-                        <td>{{ item.num_creditos }}</td>
-                        <td>{{ item.h_acom }}h / {{ item.h_indep }}h</td>
-                        <td>{{ item.idioma }}</td>
-                        <td>
-                            {% if item.espejo == 1 %}
-                                <span class="text-success">sí ({{ item.entidad_espejo }})</span>
-                            {% else %}
-                                <span class="text-muted">no</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div class="btn-group">
-                                <a href="#" class="btn btn-outline-secondary btn-sm">editar</a>
-                                <button class="btn btn-outline-danger btn-sm">eliminar</button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="8" class="text-center py-4 text-muted">
-                            no hay actividades registradas actualmente.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    {% if accion %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {{ "Modificar Actividad" if accion == 'editar' else "Registrar Nueva Actividad" }}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('activ_academica.actualizar') if accion == 'editar' else url_for('activ_academica.crear') }}">
+                {% if accion == 'editar' %}
+                    <input type="hidden" name="id" value="{{ actividad_editar.id }}">
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-5 mb-3">
+                        <label class="form-label font-weight-bold">Nombre</label>
+                        <input type="text" name="nombre" class="form-control"
+                               value="{{ actividad_editar.nombre if actividad_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Tipo</label>
+                        <select name="tipo" class="form-control">
+                            {% for op in ['teórica', 'práctica', 'teórico-práctica'] %}
+                            <option value="{{ op }}" {{ 'selected' if actividad_editar and actividad_editar.tipo == op }}>{{ op }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label font-weight-bold">Créditos</label>
+                        <input type="number" name="num_creditos" class="form-control" min="1" max="10"
+                               value="{{ actividad_editar.num_creditos if actividad_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label font-weight-bold">Idioma</label>
+                        <input type="text" name="idioma" class="form-control"
+                               value="{{ actividad_editar.idioma if actividad_editar else 'español' }}" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Área de Formación</label>
+                        <input type="text" name="area_formacion" class="form-control"
+                               value="{{ actividad_editar.area_formacion if actividad_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label font-weight-bold">H. Acompañadas</label>
+                        <input type="number" name="h_acom" class="form-control"
+                               value="{{ actividad_editar.h_acom if actividad_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label font-weight-bold">H. Independientes</label>
+                        <input type="number" name="h_indep" class="form-control"
+                               value="{{ actividad_editar.h_indep if actividad_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Programa (Diseño)</label>
+                        <select name="disenio" class="form-control">
+                            <option value="">Sin programa</option>
+                            {% for p in programas %}
+                            <option value="{{ p.id }}" {{ 'selected' if actividad_editar and actividad_editar.disenio == p.id }}>
+                                {{ p.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label font-weight-bold">¿Es Espejo?</label>
+                        <select name="espejo" class="form-control">
+                            <option value="0" {{ 'selected' if not actividad_editar or actividad_editar.espejo == 0 }}>No</option>
+                            <option value="1" {{ 'selected' if actividad_editar and actividad_editar.espejo == 1 }}>Sí</option>
+                        </select>
+                    </div>
+                    <div class="col-md-5 mb-3">
+                        <label class="form-label font-weight-bold">Entidad Espejo</label>
+                        <input type="text" name="entidad_espejo" class="form-control"
+                               value="{{ actividad_editar.entidad_espejo if actividad_editar else '' }}">
+                    </div>
+                    <div class="col-md-5 mb-3">
+                        <label class="form-label font-weight-bold">País Espejo</label>
+                        <input type="text" name="pais_espejo" class="form-control"
+                               value="{{ actividad_editar.pais_espejo if actividad_editar else '' }}">
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <a href="{{ url_for('activ_academica.index') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Registros en Base de Datos</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Créditos</th>
+                            <th>H. Acom/Ind</th>
+                            <th>Idioma</th>
+                            <th>Espejo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in actividades %}
+                        <tr>
+                            <td>{{ item.id }}</td>
+                            <td><strong>{{ item.nombre }}</strong></td>
+                            <td><span class="badge bg-info text-dark">{{ item.tipo }}</span></td>
+                            <td>{{ item.num_creditos }}</td>
+                            <td>{{ item.h_acom }}h / {{ item.h_indep }}h</td>
+                            <td>{{ item.idioma }}</td>
+                            <td>
+                                {% if item.espejo == 1 %}
+                                    <span class="text-success">Sí ({{ item.entidad_espejo }})</span>
+                                {% else %}
+                                    <span class="text-muted">No</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('activ_academica.index', accion='editar', id=item.id) }}"
+                                       class="btn btn-sm btn-warning">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('activ_academica.eliminar') }}" style="display:inline;">
+                                        <input type="hidden" name="id" value="{{ item.id }}">
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('¿Eliminar actividad {{ item.nombre }}?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">No hay actividades registradas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

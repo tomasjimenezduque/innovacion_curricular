@@ -1,77 +1,80 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
-from sqlalchemy import select, update
+from sqlalchemy import select, update, text
 from .abstracciones.i_repository import IRepository
 from models.registro_calificado import RegistroCalificado
+import datetime
 
 class RegistroCalificadoRepository(IRepository):
 
-    def __init__(self, db: AsyncSession): # Inyectamos la sesión asíncrona
+    def __init__(self, db: AsyncSession):
         self.db = db
 
     async def obtener_todos(self, esquema: str = None, limite: int = None):
-        """Lista los registros cargando el programa asociado para evitar N+1."""
-        stmt = select(RegistroCalificado).options(joinedload(RegistroCalificado.programa_))
+        stmt = select(RegistroCalificado)
         if limite:
             stmt = stmt.limit(limite)
-        
-        # CORRECCIÓN: await para ejecución asíncrona
         result = await self.db.execute(stmt)
-        return result.scalars().all()
+        filas = result.scalars().all()
+
+        resultado_limpio = []
+        for f in filas:
+            d = f.__dict__.copy()
+            d.pop('_sa_instance_state', None)
+            if isinstance(d.get('fecha_inicio'), (datetime.date, datetime.datetime)):
+                d['fecha_inicio'] = d['fecha_inicio'].isoformat()
+            if isinstance(d.get('fecha_fin'), (datetime.date, datetime.datetime)):
+                d['fecha_fin'] = d['fecha_fin'].isoformat()
+            resultado_limpio.append(d)
+        return resultado_limpio
 
     async def obtener_por_id(self, valor_id: int, esquema: str = None):
-        """Busca por el campo 'codigo' y carga enfoques y actividades."""
-        stmt = (
-            select(RegistroCalificado)
-            .where(RegistroCalificado.codigo == valor_id)
-            .options(
-                # joinedload es ideal para relaciones 1:1 (como el programa si fuera el caso)
-                # selectinload es mejor para colecciones (listas) en modo asíncrono
-                selectinload(RegistroCalificado.enfoque),
-                selectinload(RegistroCalificado.aa_rc)
-            )
-        )
-        # CORRECCIÓN: await para ejecución
+        stmt = select(RegistroCalificado).where(RegistroCalificado.codigo == valor_id)
         result = await self.db.execute(stmt)
-        return result.scalars().first()
+        fila = result.scalars().first()
+        return fila.__dict__ if fila else None
 
-    async def guardar(self, entidad: RegistroCalificado, esquema: str = None):
+    async def guardar(self, datos: dict, esquema: str = None):
         try:
+            if isinstance(datos.get('fecha_inicio'), str):
+                datos['fecha_inicio'] = datetime.datetime.strptime(datos['fecha_inicio'], '%Y-%m-%d').date()
+            if isinstance(datos.get('fecha_fin'), str):
+                datos['fecha_fin'] = datetime.datetime.strptime(datos['fecha_fin'], '%Y-%m-%d').date()
+
+            entidad = RegistroCalificado(**datos)
             self.db.add(entidad)
-            # CORRECCIÓN: await en operaciones de escritura
             await self.db.commit()
-            await self.db.refresh(entidad)
             return True, "Registro Calificado guardado correctamente"
         except Exception as e:
-            # CORRECCIÓN: await en rollback
             await self.db.rollback()
+            print(f"ERROR REPO RC (GUARDAR): {e}")
             return False, f"Error: {str(e)}"
 
     async def actualizar(self, codigo: int, datos: dict, esquema: str = None):
-        """
-        Actualización directa por código usando el estándar de SQLAlchemy 2.0.
-        """
         try:
-            stmt = (
-                update(RegistroCalificado)
-                .where(RegistroCalificado.codigo == codigo)
-                .values(**datos)
-            )
-            # CORRECCIÓN: await en execute y commit
+            datos.pop('codigo', None)
+            if isinstance(datos.get('fecha_inicio'), str):
+                datos['fecha_inicio'] = datetime.datetime.strptime(datos['fecha_inicio'], '%Y-%m-%d').date()
+            if isinstance(datos.get('fecha_fin'), str):
+                datos['fecha_fin'] = datetime.datetime.strptime(datos['fecha_fin'], '%Y-%m-%d').date()
+
+            stmt = update(RegistroCalificado).where(
+                RegistroCalificado.codigo == codigo
+            ).values(**datos)
             result = await self.db.execute(stmt)
             await self.db.commit()
-            
+
             if result.rowcount > 0:
                 return True, "Registro Calificado actualizado correctamente"
-            return False, "No se encontró el registro para actualizar"
+            return False, "No se encontró el registro"
         except Exception as e:
             await self.db.rollback()
             return False, f"Error al actualizar: {str(e)}"
 
-    async def eliminar(self, entidad: RegistroCalificado, esquema: str = None):
+    async def eliminar(self, entidad: dict, esquema: str = None):
         try:
-            # CORRECCIÓN: await en delete y commit
-            await self.db.delete(entidad)
+            codigo = entidad.get('codigo') if isinstance(entidad, dict) else entidad.codigo
+            sql = text("DELETE FROM registro_calificado WHERE codigo = :cod")
+            await self.db.execute(sql, {"cod": codigo})
             await self.db.commit()
             return True, "Registro Calificado eliminado"
         except Exception as e:

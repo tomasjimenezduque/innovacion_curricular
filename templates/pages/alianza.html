@@ -1,41 +1,132 @@
 {% extends "layout/base.html" %}
 
+{% block titulo %}Alianzas{% endblock %}
+{% block encabezado %}Gestión de Alianzas{% endblock %}
+
 {% block contenido %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Relación de Alianzas</h6>
-        <a href="{{ url_for('alianza.crear') }}" class="btn btn-primary btn-sm">+ Nueva Alianza</a>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Lista de Alianzas</h3>
+        {% if not accion %}
+            <a href="{{ url_for('alianza.index', accion='nuevo') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nueva Alianza
+            </a>
+        {% endif %}
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Aliado (NIT)</th>
-                        <th>Programa (ID)</th>
-                        <th>Fecha Inicio</th>
-                        <th>Fecha Fin</th>
-                        <th>Docente</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for al in alianzas %}
-                    <tr>
-                        <td>{{ al.aliado }}</td>
-                        <td>{{ al.departamento }}</td>
-                        <td>{{ al.fecha_inicio }}</td>
-                        <td>{{ al.fecha_fin or 'Vigente' }}</td>
-                        <td>{{ al.docente or 'N/A' }}</td>
-                        <td>
-                            <button class="btn btn-outline-danger btn-sm">Finalizar</button>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="6" class="text-center">No hay alianzas registradas</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    {% if accion %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {{ "Modificar Alianza" if accion == 'editar' else "Registrar Nueva Alianza" }}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('alianza.actualizar') if accion == 'editar' else url_for('alianza.crear') }}">
+                {% if accion == 'editar' %}
+                    <input type="hidden" name="aliado" value="{{ registro_editar.aliado }}">
+                    <input type="hidden" name="departamento" value="{{ registro_editar.departamento }}">
+                {% endif %}
+
+                <div class="row">
+                    {% if accion != 'editar' %}
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Aliado</label>
+                        <select name="aliado" class="form-control" required>
+                            {% for a in aliados %}
+                            <option value="{{ a.nit }}">{{ a.razon_social }} ({{ a.nit }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Programa</label>
+                        <select name="departamento" class="form-control" required>
+                            {% for p in programas %}
+                            <option value="{{ p.id }}">{{ p.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">ID Docente Encargado</label>
+                        <input type="number" name="docente" class="form-control"
+                               value="{{ registro_editar.docente if registro_editar else '' }}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Fecha Inicio</label>
+                        <input type="date" name="fecha_inicio" class="form-control"
+                               value="{{ registro_editar.fecha_inicio if registro_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Fecha Fin (Opcional)</label>
+                        <input type="date" name="fecha_fin" class="form-control"
+                               value="{{ registro_editar.fecha_fin if registro_editar else '' }}">
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <a href="{{ url_for('alianza.index') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Registros en Base de Datos</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Aliado (NIT)</th>
+                            <th>Programa</th>
+                            <th>Docente</th>
+                            <th>F. Inicio</th>
+                            <th>F. Fin</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for al in alianzas %}
+                        <tr>
+                            <td>{{ al.aliado }}</td>
+                            <td>{{ al.departamento }}</td>
+                            <td>{{ al.docente or 'N/A' }}</td>
+                            <td>{{ al.fecha_inicio }}</td>
+                            <td>{{ al.fecha_fin or 'Vigente' }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('alianza.index', accion='editar', aliado=al.aliado, departamento=al.departamento) }}"
+                                       class="btn btn-sm btn-warning">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('alianza.eliminar') }}" style="display:inline;">
+                                        <input type="hidden" name="aliado" value="{{ al.aliado }}">
+                                        <input type="hidden" name="departamento" value="{{ al.departamento }}">
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('¿Eliminar alianza con {{ al.aliado }}?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No hay alianzas registradas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
