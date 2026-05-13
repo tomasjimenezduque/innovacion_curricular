@@ -1,32 +1,53 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-import requests
+from services.api_service import ApiService
 
 aspecto_normativo_bp = Blueprint('aspecto_normativo', __name__)
+api = ApiService()
+TABLA = 'aspecto_normativo'
+CLAVE = 'id'
 
-API_URL = "http://127.0.0.1:8000/api/aspecto_normativo"
-
-@aspecto_normativo_bp.route('/')
+@aspecto_normativo_bp.route('/aspecto_normativo')
 def index():
-    try:
-        response = requests.get(API_URL)
-        datos = response.json().get('datos', []) if response.status_code == 200 else []
-        return render_template('pages/aspecto_normativo.html', aspectos=datos)
-    except Exception as e:
-        print(f"Error Aspecto Normativo: {e}")
-        return render_template('pages/aspecto_normativo.html', aspectos=[])
+    accion = request.args.get('accion')
+    id_a = request.args.get('id')
 
-@aspecto_normativo_bp.route('/crear', methods=['GET', 'POST'])
+    aspectos = api.listar(TABLA)
+
+    aspecto_editar = None
+    if accion == 'editar' and id_a:
+        aspecto_editar = api.get(TABLA, id_a)
+
+    return render_template('pages/aspecto_normativo.html',
+                           aspectos=aspectos,
+                           accion=accion,
+                           aspecto_editar=aspecto_editar)
+
+@aspecto_normativo_bp.route('/aspecto_normativo/crear', methods=['POST'])
 def crear():
-    if request.method == 'POST':
-        nueva_norma = {
-            "tipo": request.form.get('tipo'),
-            "descripcion": request.form.get('descripcion'),
-            "fuente": request.form.get('fuente')
-        }
-        response = requests.post(API_URL, json=nueva_norma)
-        if response.status_code == 201:
-            flash("Aspecto Normativo creado con éxito", "success")
-            return redirect(url_for('aspecto_normativo.index'))
-        flash("Error al crear el registro", "danger")
-    
-    return render_template('pages/crear_aspecto_normativo.html')
+    datos = {
+        "tipo":        request.form.get('tipo'),
+        "descripcion": request.form.get('descripcion'),
+        "fuente":      request.form.get('fuente')
+    }
+    exito, mensaje = api.crear(TABLA, datos)
+    flash(mensaje, 'success' if exito else 'danger')
+    return redirect(url_for('aspecto_normativo.index'))
+
+@aspecto_normativo_bp.route('/aspecto_normativo/actualizar', methods=['POST'])
+def actualizar():
+    id_a = request.form.get('id')
+    datos = {
+        "tipo":        request.form.get('tipo'),
+        "descripcion": request.form.get('descripcion'),
+        "fuente":      request.form.get('fuente')
+    }
+    exito, mensaje = api.actualizar(TABLA, CLAVE, id_a, datos)
+    flash(mensaje, 'success' if exito else 'danger')
+    return redirect(url_for('aspecto_normativo.index'))
+
+@aspecto_normativo_bp.route('/aspecto_normativo/eliminar', methods=['POST'])
+def eliminar():
+    id_a = request.form.get('id')
+    exito, mensaje = api.eliminar(TABLA, CLAVE, id_a)
+    flash(mensaje, 'success' if exito else 'danger')
+    return redirect(url_for('aspecto_normativo.index'))

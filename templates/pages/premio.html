@@ -1,39 +1,133 @@
 {% extends "layout/base.html" %}
+{% block titulo %}Premios{% endblock %}
+{% block encabezado %}Gestión de Reconocimientos y Premios{% endblock %}
 
 {% block contenido %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Reconocimientos y Premios</h6>
-        <a href="{{ url_for('premio.crear') }}" class="btn btn-primary btn-sm">+ Nuevo Premio</a>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Lista de Premios</h3>
+        {% if not accion %}
+            <a href="{{ url_for('premio.index', accion='nuevo') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Premio
+            </a>
+        {% endif %}
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Premio</th>
-                        <th>Entidad</th>
-                        <th>Fecha</th>
-                        <th>País</th>
-                        <th>Prog. ID</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for p in premios %}
-                    <tr>
-                        <td>{{ p.id }}</td>
-                        <td><strong>{{ p.nombre }}</strong></td>
-                        <td>{{ p.entidad_otorgante }}</td>
-                        <td>{{ p.fecha }}</td>
-                        <td>{{ p.pais }}</td>
-                        <td>{{ p.programa }}</td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="6" class="text-center">No hay premios registrados</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    {% if accion %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {{ "Modificar Premio" if accion == 'editar' else "Registrar Nuevo Premio" }}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('premio.actualizar') if accion == 'editar' else url_for('premio.crear') }}">
+                {% if accion == 'editar' %}
+                    <input type="hidden" name="id" value="{{ premio_editar.id }}">
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Nombre del Premio</label>
+                        <input type="text" name="nombre" class="form-control" maxlength="45"
+                               value="{{ premio_editar.nombre if premio_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Entidad Otorgante</label>
+                        <input type="text" name="entidad_otorgante" class="form-control" maxlength="45"
+                               value="{{ premio_editar.entidad_otorgante if premio_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">País</label>
+                        <input type="text" name="pais" class="form-control" maxlength="45"
+                               value="{{ premio_editar.pais if premio_editar else '' }}" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label font-weight-bold">Fecha</label>
+                        <input type="date" name="fecha" class="form-control"
+                               value="{{ premio_editar.fecha if premio_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-5 mb-3">
+                        <label class="form-label font-weight-bold">Descripción</label>
+                        <input type="text" name="descripcion" class="form-control" maxlength="45"
+                               value="{{ premio_editar.descripcion if premio_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Programa</label>
+                        <select name="programa" class="form-control" required>
+                            {% for p in programas %}
+                            <option value="{{ p.id }}" {{ 'selected' if premio_editar and premio_editar.programa == p.id }}>
+                                {{ p.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <a href="{{ url_for('premio.index') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Registros en Base de Datos</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Premio</th>
+                            <th>Entidad</th>
+                            <th>Fecha</th>
+                            <th>País</th>
+                            <th>Programa</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in premios %}
+                        <tr>
+                            <td>{{ p.id }}</td>
+                            <td><strong>{{ p.nombre }}</strong></td>
+                            <td>{{ p.entidad_otorgante }}</td>
+                            <td>{{ p.fecha }}</td>
+                            <td>{{ p.pais }}</td>
+                            <td>{{ p.programa }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('premio.index', accion='editar', id=p.id) }}"
+                                       class="btn btn-sm btn-warning">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('premio.eliminar') }}" style="display:inline;">
+                                        <input type="hidden" name="id" value="{{ p.id }}">
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('¿Eliminar premio {{ p.nombre }}?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No hay premios registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

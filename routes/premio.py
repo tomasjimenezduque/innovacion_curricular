@@ -1,41 +1,61 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-import requests
+from services.api_service import ApiService
 
 premio_bp = Blueprint('premio', __name__)
+api = ApiService()
+TABLA = 'premio'
+CLAVE = 'id'
 
-API_URL_PREMIO = "http://127.0.0.1:8000/api/premio"
-API_URL_PROG = "http://127.0.0.1:8000/api/programa"
-
-@premio_bp.route('/')
+@premio_bp.route('/premio')
 def index():
-    try:
-        response = requests.get(API_URL_PREMIO)
-        datos = response.json().get('datos', []) if response.status_code == 200 else []
-        return render_template('pages/premio.html', premios=datos)
-    except Exception as e:
-        print(f"Error Premio: {e}")
-        return render_template('pages/premio.html', premios=[])
+    accion = request.args.get('accion')
+    id_p = request.args.get('id')
 
-@premio_bp.route('/crear', methods=['GET', 'POST'])
+    premios = api.listar(TABLA)
+    programas = api.listar('programa')
+
+    premio_editar = None
+    if accion == 'editar' and id_p:
+        premio_editar = api.get(TABLA, id_p)
+
+    return render_template('pages/premio.html',
+                           premios=premios,
+                           programas=programas,
+                           accion=accion,
+                           premio_editar=premio_editar)
+
+@premio_bp.route('/premio/crear', methods=['POST'])
 def crear():
-    if request.method == 'POST':
-        data = {
-            "nombre": request.form.get('nombre'),
-            "descripcion": request.form.get('descripcion'),
-            "fecha": request.form.get('fecha'),
-            "entidad_otorgante": request.form.get('entidad_otorgante'),
-            "pais": request.form.get('pais'),
-            "programa": int(request.form.get('programa'))
-        }
-        response = requests.post(API_URL_PREMIO, json=data)
-        if response.status_code == 201:
-            flash("Premio registrado con éxito", "success")
-            return redirect(url_for('premio.index'))
-        flash("Error al registrar el premio", "danger")
+    datos = {
+        "nombre":            request.form.get('nombre'),
+        "descripcion":       request.form.get('descripcion'),
+        "fecha":             request.form.get('fecha'),
+        "entidad_otorgante": request.form.get('entidad_otorgante'),
+        "pais":              request.form.get('pais'),
+        "programa":          int(request.form.get('programa'))
+    }
+    exito, mensaje = api.crear(TABLA, datos)
+    flash(mensaje, 'success' if exito else 'danger')
+    return redirect(url_for('premio.index'))
 
-    try:
-        programas = requests.get(API_URL_PROG).json().get('datos', [])
-    except:
-        programas = []
-        
-    return render_template('pages/crear_premio.html', programas=programas)
+@premio_bp.route('/premio/actualizar', methods=['POST'])
+def actualizar():
+    id_p = request.form.get('id')
+    datos = {
+        "nombre":            request.form.get('nombre'),
+        "descripcion":       request.form.get('descripcion'),
+        "fecha":             request.form.get('fecha'),
+        "entidad_otorgante": request.form.get('entidad_otorgante'),
+        "pais":              request.form.get('pais'),
+        "programa":          int(request.form.get('programa'))
+    }
+    exito, mensaje = api.actualizar(TABLA, CLAVE, id_p, datos)
+    flash(mensaje, 'success' if exito else 'danger')
+    return redirect(url_for('premio.index'))
+
+@premio_bp.route('/premio/eliminar', methods=['POST'])
+def eliminar():
+    id_p = request.form.get('id')
+    exito, mensaje = api.eliminar(TABLA, CLAVE, id_p)
+    flash(mensaje, 'success' if exito else 'danger')
+    return redirect(url_for('premio.index'))

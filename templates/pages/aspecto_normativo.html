@@ -1,39 +1,109 @@
 {% extends "layout/base.html" %}
+{% block titulo %}Aspectos Normativos{% endblock %}
+{% block encabezado %}Gestión de Aspectos Normativos{% endblock %}
 
 {% block contenido %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Gestión de Aspectos Normativos</h6>
-        <a href="{{ url_for('aspecto_normativo.crear') }}" class="btn btn-primary btn-sm">+ Nueva Norma</a>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Lista de Aspectos Normativos</h3>
+        {% if not accion %}
+            <a href="{{ url_for('aspecto_normativo.index', accion='nuevo') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Aspecto
+            </a>
+        {% endif %}
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Tipo</th>
-                        <th>Descripción</th>
-                        <th>Fuente</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for a in aspectos %}
-                    <tr>
-                        <td>{{ a.id }}</td>
-                        <td>{{ a.tipo }}</td>
-                        <td>{{ a.descripcion }}</td>
-                        <td>{{ a.fuente }}</td>
-                        <td>
-                            <button class="btn btn-outline-secondary btn-sm">Editar</button>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="5" class="text-center">No hay normativas registradas</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    {% if accion %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {{ "Modificar Aspecto" if accion == 'editar' else "Registrar Nuevo Aspecto Normativo" }}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('aspecto_normativo.actualizar') if accion == 'editar' else url_for('aspecto_normativo.crear') }}">
+                {% if accion == 'editar' %}
+                    <input type="hidden" name="id" value="{{ aspecto_editar.id }}">
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Tipo</label>
+                        <input type="text" name="tipo" class="form-control"
+                               value="{{ aspecto_editar.tipo if aspecto_editar else '' }}"
+                               placeholder="Ej: Decreto, Ley, Acuerdo" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Fuente</label>
+                        <input type="text" name="fuente" class="form-control"
+                               value="{{ aspecto_editar.fuente if aspecto_editar else '' }}"
+                               placeholder="Ej: Ministerio de Educación" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Descripción</label>
+                        <input type="text" name="descripcion" class="form-control"
+                               value="{{ aspecto_editar.descripcion if aspecto_editar else '' }}" required>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <a href="{{ url_for('aspecto_normativo.index') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Registros en Base de Datos</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                            <th>Fuente</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in aspectos %}
+                        <tr>
+                            <td>{{ a.id }}</td>
+                            <td>{{ a.tipo }}</td>
+                            <td>{{ a.descripcion }}</td>
+                            <td>{{ a.fuente }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('aspecto_normativo.index', accion='editar', id=a.id) }}"
+                                       class="btn btn-sm btn-warning">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('aspecto_normativo.eliminar') }}" style="display:inline;">
+                                        <input type="hidden" name="id" value="{{ a.id }}">
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('¿Eliminar aspecto {{ a.tipo }}?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">No hay aspectos normativos registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

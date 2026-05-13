@@ -1,35 +1,108 @@
 {% extends "layout/base.html" %}
+{% block titulo %}Áreas de Conocimiento{% endblock %}
+{% block encabezado %}Gestión de Áreas de Conocimiento{% endblock %}
+
 {% block contenido %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between">
-        <h6 class="m-0 font-weight-bold text-primary">Áreas de Conocimiento</h6>
-        <a href="{{ url_for('area_conocimiento.crear') }}" class="btn btn-primary btn-sm">+ Nueva Área</a>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Lista de Áreas</h3>
+        {% if not accion %}
+            <a href="{{ url_for('area_conocimiento.index', accion='nuevo') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nueva Área
+            </a>
+        {% endif %}
     </div>
-    <div class="card-body">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Gran Área</th>
-                    <th>Área</th>
-                    <th>Disciplina</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for a in areas %}
-                <tr>
-                    <td>{{ a.id }}</td>
-                    <td>{{ a.gran_area }}</td>
-                    <td>{{ a.area }}</td>
-                    <td>{{ a.disciplina }}</td>
-                    <td>
-                        <button class="btn btn-outline-secondary btn-sm">Editar</button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+    {% if accion %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {{ "Modificar Área" if accion == 'editar' else "Registrar Nueva Área" }}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('area_conocimiento.actualizar') if accion == 'editar' else url_for('area_conocimiento.crear') }}">
+                {% if accion == 'editar' %}
+                    <input type="hidden" name="id" value="{{ area_editar.id }}">
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Gran Área</label>
+                        <input type="text" name="gran_area" class="form-control"
+                               value="{{ area_editar.gran_area if area_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Área</label>
+                        <input type="text" name="area" class="form-control"
+                               value="{{ area_editar.area if area_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Disciplina</label>
+                        <input type="text" name="disciplina" class="form-control"
+                               value="{{ area_editar.disciplina if area_editar else '' }}" required>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <a href="{{ url_for('area_conocimiento.index') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Registros en Base de Datos</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Gran Área</th>
+                            <th>Área</th>
+                            <th>Disciplina</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in areas %}
+                        <tr>
+                            <td>{{ a.id }}</td>
+                            <td>{{ a.gran_area }}</td>
+                            <td>{{ a.area }}</td>
+                            <td>{{ a.disciplina }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('area_conocimiento.index', accion='editar', id=a.id) }}"
+                                       class="btn btn-sm btn-warning">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('area_conocimiento.eliminar') }}" style="display:inline;">
+                                        <input type="hidden" name="id" value="{{ a.id }}">
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('¿Eliminar área {{ a.gran_area }}?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">No hay áreas registradas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

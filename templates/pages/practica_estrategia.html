@@ -1,39 +1,112 @@
 {% extends "layout/base.html" %}
+{% block titulo %}Prácticas Estratégicas{% endblock %}
+{% block encabezado %}Gestión de Prácticas Estratégicas{% endblock %}
 
 {% block contenido %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Gestión de Prácticas Estratégicas</h6>
-        <a href="{{ url_for('practica_estrategia.crear') }}" class="btn btn-primary btn-sm">+ Nueva Práctica</a>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Lista de Prácticas</h3>
+        {% if not accion %}
+            <a href="{{ url_for('practica_estrategia.index', accion='nuevo') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nueva Práctica
+            </a>
+        {% endif %}
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Tipo</th>
-                        <th>Nombre</th>
-                        <th>Descripción</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for p in practicas %}
-                    <tr>
-                        <td>{{ p.id }}</td>
-                        <td><span class="badge badge-primary">{{ p.tipo }}</span></td>
-                        <td><strong>{{ p.nombre }}</strong></td>
-                        <td>{{ p.descripcion }}</td>
-                        <td>
-                            <button class="btn btn-outline-secondary btn-sm">Editar</button>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="5" class="text-center">No hay prácticas registradas</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    {% if accion %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {{ "Modificar Práctica" if accion == 'editar' else "Registrar Nueva Práctica Estratégica" }}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('practica_estrategia.actualizar') if accion == 'editar' else url_for('practica_estrategia.crear') }}">
+                {% if accion == 'editar' %}
+                    <input type="hidden" name="id" value="{{ practica_editar.id }}">
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label font-weight-bold">Nombre</label>
+                        <input type="text" name="nombre" class="form-control"
+                               value="{{ practica_editar.nombre if practica_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label font-weight-bold">Tipo</label>
+                        <select name="tipo" class="form-control">
+                            {% for op in ['Pedagógica', 'Administrativa', 'Investigativa', 'Vinculación'] %}
+                            <option value="{{ op }}" {{ 'selected' if practica_editar and practica_editar.tipo == op }}>{{ op }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label font-weight-bold">Descripción</label>
+                        <input type="text" name="descripcion" class="form-control" maxlength="45"
+                               value="{{ practica_editar.descripcion if practica_editar else '' }}" required>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <a href="{{ url_for('practica_estrategia.index') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Registros en Base de Datos</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Tipo</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in practicas %}
+                        <tr>
+                            <td>{{ p.id }}</td>
+                            <td><span class="badge badge-secondary">{{ p.tipo }}</span></td>
+                            <td><strong>{{ p.nombre }}</strong></td>
+                            <td>{{ p.descripcion }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('practica_estrategia.index', accion='editar', id=p.id) }}"
+                                       class="btn btn-sm btn-warning">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('practica_estrategia.eliminar') }}" style="display:inline;">
+                                        <input type="hidden" name="id" value="{{ p.id }}">
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('¿Eliminar {{ p.nombre }}?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">No hay prácticas registradas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

@@ -8,24 +8,20 @@ api: IApiService = ApiService()
 
 @facultad_bp.route("/facultad")
 def index():
-    """
-    Renderiza el listado y maneja la lógica de cargar datos para editar
-    basado en los parámetros de la URL (?accion=editar&id=X).
-    """
     accion = request.args.get("accion")
     id_editar = request.args.get("id")
+
+    facultades = api.listar("facultad")
+    universidades = api.listar("universidad")  # ← agregar esta línea
+
     facultad_editar = None
-    
-    # Si la acción es editar, recuperamos la facultad específica
     if accion == "editar" and id_editar:
         facultad_editar = api.get("facultad", id_editar)
-        if not facultad_editar:
-            flash("No se pudo obtener la facultad para editar", "warning")
-        
-    facultades = api.listar("facultad")
-    return render_template("pages/facultad.html", 
-                           facultades=facultades, 
-                           accion=accion, 
+
+    return render_template("pages/facultad.html",
+                           facultades=facultades,
+                           universidades=universidades,  # ← y esta
+                           accion=accion,
                            facultad_editar=facultad_editar)
 
 @facultad_bp.route("/facultad/crear", methods=["POST"])

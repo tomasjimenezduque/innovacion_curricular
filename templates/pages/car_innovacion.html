@@ -1,39 +1,111 @@
 {% extends "layout/base.html" %}
+{% block titulo %}Características de Innovación{% endblock %}
+{% block encabezado %}Gestión de Características de Innovación{% endblock %}
 
 {% block contenido %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Características de Innovación</h6>
-        <a href="{{ url_for('car_innovacion.crear') }}" class="btn btn-primary btn-sm">+ Nueva Característica</a>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Lista de Características</h3>
+        {% if not accion %}
+            <a href="{{ url_for('car_innovacion.index', accion='nuevo') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nueva Característica
+            </a>
+        {% endif %}
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Tipo</th>
-                        <th>Descripción</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in innovaciones %}
-                    <tr>
-                        <td>{{ item.id }}</td>
-                        <td>{{ item.nombre }}</td>
-                        <td><span class="badge badge-info">{{ item.tipo }}</span></td>
-                        <td>{{ item.descripcion[:50] }}{% if item.descripcion|length > 50 %}...{% endif %}</td>
-                        <td>
-                            <button class="btn btn-outline-secondary btn-sm">Editar</button>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="5" class="text-center">No hay registros de innovación</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    {% if accion %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {{ "Modificar Característica" if accion == 'editar' else "Registrar Nueva Característica" }}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('car_innovacion.actualizar') if accion == 'editar' else url_for('car_innovacion.crear') }}">
+                {% if accion == 'editar' %}
+                    <input type="hidden" name="id" value="{{ innovacion_editar.id }}">
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label font-weight-bold">Nombre</label>
+                        <input type="text" name="nombre" class="form-control"
+                               value="{{ innovacion_editar.nombre if innovacion_editar else '' }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label font-weight-bold">Tipo</label>
+                        <select name="tipo" class="form-control">
+                            {% for op in ['Tecnológica', 'Social', 'Pedagógica', 'Empresarial'] %}
+                            <option value="{{ op }}" {{ 'selected' if innovacion_editar and innovacion_editar.tipo == op }}>{{ op }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label font-weight-bold">Descripción</label>
+                        <textarea name="descripcion" class="form-control" rows="3" required>{{ innovacion_editar.descripcion if innovacion_editar else '' }}</textarea>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <a href="{{ url_for('car_innovacion.index') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Registros en Base de Datos</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in innovaciones %}
+                        <tr>
+                            <td>{{ item.id }}</td>
+                            <td><strong>{{ item.nombre }}</strong></td>
+                            <td><span class="badge badge-info">{{ item.tipo }}</span></td>
+                            <td>{{ item.descripcion[:80] }}{% if item.descripcion|length > 80 %}...{% endif %}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('car_innovacion.index', accion='editar', id=item.id) }}"
+                                       class="btn btn-sm btn-warning">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('car_innovacion.eliminar') }}" style="display:inline;">
+                                        <input type="hidden" name="id" value="{{ item.id }}">
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('¿Eliminar {{ item.nombre }}?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">No hay características registradas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

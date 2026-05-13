@@ -1,29 +1,53 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-import requests
+from services.api_service import ApiService
 
 area_con_bp = Blueprint('area_conocimiento', __name__)
-API_URL = "http://127.0.0.1:8000/api/area_conocimiento"
+api = ApiService()
+TABLA = 'area_conocimiento'
+CLAVE = 'id'
 
-@area_con_bp.route('/')
+@area_con_bp.route('/area_conocimiento')
 def index():
-    try:
-        response = requests.get(API_URL)
-        datos = response.json().get('datos', []) if response.status_code == 200 else []
-        return render_template('pages/area_conocimiento.html', areas=datos)
-    except Exception:
-        return render_template('pages/area_conocimiento.html', areas=[])
+    accion = request.args.get('accion')
+    id_a = request.args.get('id')
 
-@area_con_bp.route('/crear', methods=['GET', 'POST'])
+    areas = api.listar(TABLA)
+
+    area_editar = None
+    if accion == 'editar' and id_a:
+        area_editar = api.get(TABLA, id_a)
+
+    return render_template('pages/area_conocimiento.html',
+                           areas=areas,
+                           accion=accion,
+                           area_editar=area_editar)
+
+@area_con_bp.route('/area_conocimiento/crear', methods=['POST'])
 def crear():
-    if request.method == 'POST':
-        data = {
-            "gran_area": request.form.get('gran_area'),
-            "area": request.form.get('area'),
-            "disciplina": request.form.get('disciplina')
-        }
-        response = requests.post(API_URL, json=data)
-        if response.status_code == 201:
-            flash("Área creada con éxito", "success")
-            return redirect(url_for('area_conocimiento.index'))
-        flash("Error al crear área", "danger")
-    return render_template('pages/crear_area_conocimiento.html')
+    datos = {
+        "gran_area":  request.form.get('gran_area'),
+        "area":       request.form.get('area'),
+        "disciplina": request.form.get('disciplina')
+    }
+    exito, mensaje = api.crear(TABLA, datos)
+    flash(mensaje, 'success' if exito else 'danger')
+    return redirect(url_for('area_conocimiento.index'))
+
+@area_con_bp.route('/area_conocimiento/actualizar', methods=['POST'])
+def actualizar():
+    id_a = request.form.get('id')
+    datos = {
+        "gran_area":  request.form.get('gran_area'),
+        "area":       request.form.get('area'),
+        "disciplina": request.form.get('disciplina')
+    }
+    exito, mensaje = api.actualizar(TABLA, CLAVE, id_a, datos)
+    flash(mensaje, 'success' if exito else 'danger')
+    return redirect(url_for('area_conocimiento.index'))
+
+@area_con_bp.route('/area_conocimiento/eliminar', methods=['POST'])
+def eliminar():
+    id_a = request.form.get('id')
+    exito, mensaje = api.eliminar(TABLA, CLAVE, id_a)
+    flash(mensaje, 'success' if exito else 'danger')
+    return redirect(url_for('area_conocimiento.index'))

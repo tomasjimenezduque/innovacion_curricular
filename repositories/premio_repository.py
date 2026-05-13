@@ -1,70 +1,77 @@
-from sqlalchemy.ext.asyncio import AsyncSession # Cambio a AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, update, text, func
 from .abstracciones.i_repository import IRepository
 from models.premio import Premio
+import datetime
 
 class PremioRepository(IRepository):
 
-    def __init__(self, db: AsyncSession): # Ahora inyectamos AsyncSession
+    def __init__(self, db: AsyncSession):
         self.db = db
 
     async def obtener_todos(self, esquema: str = None, limite: int = None):
-        """Consulta asíncrona de todas las facultades."""
         stmt = select(Premio)
         if limite:
             stmt = stmt.limit(limite)
-        
-        # CORRECCIÓN: await para ejecutar
         result = await self.db.execute(stmt)
-        return result.scalars().all()
+        filas = result.scalars().all()
+        resultado_limpio = []
+        for f in filas:
+            d = f.__dict__.copy()
+            d.pop('_sa_instance_state', None)
+            if isinstance(d.get('fecha'), (datetime.date, datetime.datetime)):
+                d['fecha'] = d['fecha'].isoformat()
+            resultado_limpio.append(d)
+        return resultado_limpio
 
     async def obtener_por_id(self, valor_id: int, esquema: str = None):
-        """Obtiene una facultad específica por su ID."""
         stmt = select(Premio).where(Premio.id == valor_id)
-        # CORRECCIÓN: await para ejecutar
         result = await self.db.execute(stmt)
-        return result.scalars().first()
+        fila = result.scalars().first()
+        return fila.__dict__ if fila else None
 
-    async def guardar(self, entidad: Premio, esquema: str = None):
+    async def guardar(self, datos: dict, esquema: str = None):
         try:
+            datos.pop('id', None)
+            resultado = await self.db.execute(select(func.max(Premio.id)))
+            max_id = resultado.scalar() or 0
+            datos['id'] = max_id + 1
+
+            if isinstance(datos.get('fecha'), str):
+                datos['fecha'] = datetime.datetime.strptime(datos['fecha'], '%Y-%m-%d').date()
+
+            entidad = Premio(**datos)
             self.db.add(entidad)
-            # CORRECCIÓN: await en commit y refresh
             await self.db.commit()
-            await self.db.refresh(entidad)
             return True, "Premio guardado correctamente"
         except Exception as e:
-            # CORRECCIÓN: await en rollback
             await self.db.rollback()
+            print(f"ERROR REPO PREMIO (GUARDAR): {e}")
             return False, f"Error: {str(e)}"
 
     async def actualizar(self, valor_id: int, datos: dict, esquema: str = None):
-        """
-        Actualiza los datos de un premio (nombre, fecha, institución, etc.).
-        """
         try:
-            stmt = (
-                update(Premio)
-                .where(Premio.id == valor_id)
-                .values(**datos)
-            )
-            
-            # CORRECCIÓN: await en execute y commit
+            datos.pop('id', None)
+            if isinstance(datos.get('fecha'), str):
+                datos['fecha'] = datetime.datetime.strptime(datos['fecha'], '%Y-%m-%d').date()
+
+            stmt = update(Premio).where(Premio.id == valor_id).values(**datos)
             result = await self.db.execute(stmt)
             await self.db.commit()
-            
             if result.rowcount > 0:
                 return True, "Premio actualizado correctamente"
-            return False, "No se encontró el premio para actualizar"
+            return False, "No se encontró el premio"
         except Exception as e:
             await self.db.rollback()
-            return False, f"Error al actualizar premio: {str(e)}"
+            return False, f"Error al actualizar: {str(e)}"
 
-    async def eliminar(self, entidad: Premio, esquema: str = None):
+    async def eliminar(self, entidad: dict, esquema: str = None):
         try:
-            # CORRECCIÓN: await en delete y commit
-            await self.db.delete(entidad)
+            valor_id = entidad.get('id') if isinstance(entidad, dict) else entidad.id
+            sql = text("DELETE FROM premio WHERE id = :id_val")
+            await self.db.execute(sql, {"id_val": valor_id})
             await self.db.commit()
-            return True, "Registro eliminado correctamente"
+            return True, "Premio eliminado correctamente"
         except Exception as e:
             await self.db.rollback()
             return False, f"Error: {str(e)}"
